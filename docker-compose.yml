@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: .
+    container_name: hypernexus-vrl1-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - ENVIRONMENT=production
+      - VAULT_MASTER_KEY=hyp-vrl1-radial-master-key-32bytes-secret!
+      - VAULT_PERSISTENCE_PATH=/app/data/radial_vault.json
+      - MCP_ENABLED=true
+    volumes:
+      - vrl1_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  vrl1_data:
+    driver: local

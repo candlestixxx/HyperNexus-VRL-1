@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperNexus VRL-1 | United Beats Universal API Gateway</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0c10;
+      --bg-card: #12161f;
+      --bg-card-hover: #171d29;
+      --border-color: #232a38;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent-ub: #ec4899;
+      --accent-ub-glow: rgba(236, 72, 153, 0.3);
+      --accent-cyan: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Glassmorphism Header */
+    header {
+      background: rgba(18, 22, 31, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-ub), var(--primary));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--accent-ub-glow);
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #fff;
+    }
+
+    .brand-title h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title span.badge {
+      font-size: 0.7rem;
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary-light);
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(10, 12, 16, 0.6);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .nav-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: transparent;
+      border: none;
+    }
+
+    .nav-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 28px 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Top Stats Grid */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent-ub));
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* View Sections */
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+      animation: fadeIn 0.25s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Layout Grids */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .two-col-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .panel-header h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.45;
+    }
+
+    /* Form Components */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    input[type="text"], input[type="url"], input[type="number"], select, textarea {
+      width: 100%;
+      background: rgba(10, 12, 16, 0.8);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    textarea {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent-ub), #db2777);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--accent-ub-glow);
+    }
+
+    .btn-accent:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--text-muted);
+      color: var(--text-main);
+    }
+
+    /* Radial Canvas Visualizer */
+    .canvas-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #07090e;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+    }
+
+    #radialCanvas {
+      width: 100%;
+      max-width: 480px;
+      height: 400px;
+      display: block;
+    }
+
+    .canvas-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 16px;
+      font-size: 0.75rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Table Component */
+    .data-table-container {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    table.data-table th {
+      background: rgba(10, 12, 16, 0.9);
+      padding: 12px 16px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    table.data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    table.data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .code-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tag-tier {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .tag-tier-0 { background: rgba(99, 102, 241, 0.15); color: var(--primary-light); border: 1px solid var(--primary); }
+    .tag-tier-1 { background: rgba(236, 72, 153, 0.15); color: var(--accent-ub); border: 1px solid var(--accent-ub); }
+    .tag-tier-2 { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); }
+    .tag-tier-3 { background: rgba(156, 163, 175, 0.15); color: var(--text-muted); border: 1px solid var(--text-dim); }
+
+    /* Results Log Console */
+    .console-box {
+      background: #07090e;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      max-height: 380px;
+      overflow-y: auto;
+      color: #38bdf8;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Tooltip */
+    .tooltip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      cursor: help;
+      margin-left: 4px;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-logo">UB</div>
+      <div class="brand-title">
+        <h1>HyperNexus VRL-1 <span class="badge">v1.0.0</span></h1>
+        <div class="brand-subtitle">United Beats Zero-Trust Multi-Tenant API Gateway & Radial Vault</div>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchView('switchboard')">Switchboard Simulator</button>
+      <button class="nav-tab" onclick="switchView('radial-vault')">Radial Vector Vault</button>
+      <button class="nav-tab" onclick="switchView('onboarding')">Onboard New Tenant</button>
+      <button class="nav-tab" onclick="switchView('audit-ledger')">Database & Audit Ledger</button>
+      <button class="nav-tab" onclick="switchView('mcp-bridge')">MCP AI Bridge</button>
+    </nav>
+
+    <div class="header-actions">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>CONTROL PLANE ONLINE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Top Metrics Overview -->
+    <section class="metrics-bar">
+      <div class="metric-card">
+        <div class="metric-label">Active Tenants</div>
+        <div class="metric-value" id="stat-tenants">3</div>
+        <div class="metric-sub">Across 4 Security Rings</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Dispatched</div>
+        <div class="metric-value" id="stat-dispatched">0</div>
+        <div class="metric-sub">Zero Cross-Tenant Leakage</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Avg Routing Latency</div>
+        <div class="metric-value" id="stat-latency">0.0 ms</div>
+        <div class="metric-sub">High-Throughput Async Forwarding</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Active DB Pools</div>
+        <div class="metric-value" id="stat-dbpools">3</div>
+        <div class="metric-sub">Isolated Tenant Schemas</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">MCP Agent Links</div>
+        <div class="metric-value" id="stat-mcp">3</div>
+        <div class="metric-sub">Hermes / Ollama Bridged</div>
+      </div>
+    </section>
+
+    <!-- VIEW 1: DYNAMIC SWITCHBOARD SIMULATOR -->
+    <div id="view-switchboard" class="view-section active">
+      <div class="two-col-grid">
+        <!-- Input Dispatch Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Dynamic API Switchboard</h2>
+            <span class="badge" style="font-size:0.75rem; color:var(--accent-ub)">Zero-Downtime Dispatch</span>
+          </div>
+          <p class="panel-desc">
+            Simulate incoming traffic. HyperNexus VRL-1 resolves the tenant vector, enforces per-tenant rate limits, attaches isolated database connection pools, and dispatches to the correct corporate silo without context leakage.
+          </p>
+
+          <form id="dispatchForm" onsubmit="handleDispatch(event)">
+            <div class="form-group">
+              <label for="tenantSelect">Select Inbound Business Vector <span class="tooltip-icon" title="Determines API Key and tenant routing vector">?</span></label>
+              <select id="tenantSelect" onchange="syncSelectedKey()">
+                <option value="ub_live_key_9901_hypernexus_vrl1">United Beats LLC (Enterprise Ring 1)</option>
+                <option value="excel_legacy_key_7742_realestate">Excel Legacy Realty Team (Pro Ring 2)</option>
+                <option value="hyp_nexus_master_ring0_key">HyperNexus Global Control (Core Ring 0)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="apiKeyInput">Injected X-API-Key Header <span class="tooltip-icon" title="Secret API key resolved by Radial Vector Vault">?</span></label>
+              <input type="text" id="apiKeyInput" value="ub_live_key_9901_hypernexus_vrl1" required>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 120px 1fr; gap:12px;" class="form-group">
+              <div>
+                <label for="httpMethod">Method</label>
+                <select id="httpMethod">
+                  <option value="POST">POST</option>
+                  <option value="GET">GET</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </div>
+              <div>
+                <label for="endpointPath">Sub-Path Route <span class="tooltip-icon" title="Dynamic sub-route forwarded to company base URL">?</span></label>
+                <input type="text" id="endpointPath" value="music/stream/ingest">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="payloadEditor">JSON Payload Body</label>
+              <textarea id="payloadEditor" rows="6">{
+  "track_id": "trk_984210",
+  "artist": "United Beats Artist Collective",
+  "stream_bpm": 128,
+  "venue": "Detroit Electronic Sound Stage",
+  "meta": { "session_type": "live_sync" }
+}</textarea>
+              <div class="form-hint">Sent securely into tenant's isolated proxy upstream and database audit pool.</div>
+            </div>
+
+            <div style="display:flex; gap:12px; margin-top:20px;">
+              <button type="submit" class="btn btn-accent" id="dispatchBtn">
+                <span>Forward Payload</span>
+              </button>
+              <button type="button" class="btn btn-outline" onclick="resetDispatchSample()">Reset Sample</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Real-Time Routing Inspection Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Real-Time Routing & Audit Inspection</h2>
+            <span class="code-badge" id="dispatchLatency">0.0 ms</span>
+          </div>
+          <p class="panel-desc">
+            Output of dynamic tenant resolution, polar ring mapping, database audit execution, and MCP AI agent synchronization.
+          </p>
+
+          <div class="console-box" id="dispatchConsole">
+// HyperNexus VRL-1 Gateway ready.
+// Select a business tenant and click "Forward Payload" to test zero-downtime routing.
+          </div>
+
+          <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+              <div style="font-size:0.75rem; color:var(--text-dim);">TENANT SILO TARGET</div>
+              <div style="font-size:0.85rem; font-weight:600; color:var(--accent-cyan); margin-top:4px;" id="dispTarget">-</div>
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+              <div style="font-size:0.75rem; color:var(--text-dim);">POLAR COORDINATES (r, &theta;)</div>
+              <div style="font-size:0.85rem; font-weight:600; color:var(--primary-light); margin-top:4px;" id="dispCoords">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: RADIAL VECTOR VAULT & VISUALIZER -->
+    <div id="view-radial-vault" class="view-section">
+      <div class="two-col-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Radial Vector Secret Space</h2>
+            <span class="badge" style="color:var(--primary-light)">O(1) Concentric Ring Indexing</span>
+          </div>
+          <p class="panel-desc">
+            Tenants are mapped into polar tree rings (radius <em>r</em> indicates security/isolation tier, angle <em>&theta;</em> is derived from cryptographic hash). Encryption keys rotate dynamically with depth <em>z</em>.
+          </p>
+
+          <div class="canvas-container">
+            <canvas id="radialCanvas" width="480" height="400"></canvas>
+            <div class="canvas-legend">
+              <div class="legend-item"><span class="legend-color" style="background:#6366f1"></span> Ring 0: Core (r=0.5)</div>
+              <div class="legend-item"><span class="legend-color" style="background:#ec4899"></span> Ring 1: United Beats (r=1.0)</div>
+              <div class="legend-item"><span class="legend-color" style="background:#06b6d4"></span> Ring 2: Pro Realty (r=1.5)</div>
+              <div class="legend-item"><span class="legend-color" style="background:#9ca3af"></span> Ring 3: Standard (r=2.0)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Registered Tenant Registry</h2>
+            <button class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;" onclick="loadTenantRegistry()">Refresh</button>
+          </div>
+          <p class="panel-desc">
+            All tenant credentials, database strings, and upstream tokens remain envelope-encrypted in the Radial Vector Vault.
+          </p>
+
+          <div class="data-table-container">
+            <table class="data-table" id="tenantTable">
+              <thead>
+                <tr>
+                  <th>Company ID</th>
+                  <th>Tier Ring</th>
+                  <th>Target API</th>
+                  <th>Database URI</th>
+                  <th>MCP</th>
+                </tr>
+              </thead>
+              <tbody id="tenantTableBody">
+                <!-- Populated dynamically via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: ONBOARD NEW TENANT -->
+    <div id="view-onboarding" class="view-section">
+      <div class="panel" style="max-width:800px; margin:0 auto;">
+        <div class="panel-header">
+          <h2>Zero-Downtime Tenant Onboarding</h2>
+          <span class="badge" style="color:var(--success)">Hot Registry Ingestion</span>
+        </div>
+        <p class="panel-desc">
+          Onboard a new company instantly. The system registers the tenant directly into the in-memory Radial Vector Matrix and writes to persistent storage—no server reboot or redeployment required.
+        </p>
+
+        <form id="onboardForm" onsubmit="handleOnboard(event)">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label for="newCompanyId">Company Identifier (Alphanumeric) <span class="tooltip-icon" title="Unique slug used in internal routing">?</span></label>
+              <input type="text" id="newCompanyId" placeholder="e.g. detroit_sound_labs" required>
+            </div>
+            <div class="form-group">
+              <label for="newCompanyName">Display Company Name <span class="tooltip-icon" title="Human-readable business name">?</span></label>
+              <input type="text" id="newCompanyName" placeholder="e.g. Detroit Sound Labs LLC" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label for="newTier">Security Tier Ring</label>
+              <select id="newTier">
+                <option value="tier_1_enterprise">Ring 1: Enterprise (United Beats Tier)</option>
+                <option value="tier_2_pro" selected>Ring 2: Pro Business (Standard SaaS)</option>
+                <option value="tier_3_standard">Ring 3: Community & Third-Party</option>
+                <option value="tier_0_core">Ring 0: HyperNexus Core Infrastructure</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="newApiKey">Assigned Inbound API Key <span class="tooltip-icon" title="Given to client to authenticate incoming payloads">?</span></label>
+              <input type="text" id="newApiKey" placeholder="e.g. dsl_live_secret_key_8841" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="newTargetApi">Upstream Target API Base URL <span class="tooltip-icon" title="Destination endpoint where requests will be proxied">?</span></label>
+            <input type="url" id="newTargetApi" placeholder="https://api.detroitsoundlabs.com/v1" required>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 180px; gap:16px;">
+            <div class="form-group">
+              <label for="newDbConnection">Isolated Database URI <span class="tooltip-icon" title="Encrypted in Radial Vault, isolated connection pool">?</span></label>
+              <input type="text" id="newDbConnection" placeholder="postgresql://user:pass@db.detroit.internal:5432/dsl_prod" required>
+            </div>
+            <div class="form-group">
+              <label for="newDbType">Database Engine</label>
+              <select id="newDbType">
+                <option value="postgresql">PostgreSQL</option>
+                <option value="mongodb">MongoDB</option>
+                <option value="sqlite">SQLite</option>
+                <option value="mysql">MySQL</option>
+                <option value="redis">Redis</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label for="newRateLimit">Rate Limit (Requests / Sec)</label>
+              <input type="number" id="newRateLimit" value="250" min="10" max="10000">
+            </div>
+            <div class="form-group" style="display:flex; flex-direction:column; justify-content:center;">
+              <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="newMcpEnabled" checked style="width:18px; height:18px;">
+                <span>Enable MCP AI Agent Context Synchronization</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <button type="submit" class="btn btn-primary" id="onboardSubmitBtn">
+              <span>Register Business In Radial Vault</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW 4: DATABASE & AUDIT LEDGER -->
+    <div id="view-audit-ledger" class="view-section">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Tenant-Isolated Database Audit Ledger</h2>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <select id="auditCompanySelect" onchange="loadAuditLogs()" style="width:220px;">
+              <option value="united_beats">United Beats</option>
+              <option value="excel_legacy_realty">Excel Legacy Realty</option>
+              <option value="hypernexus_core">HyperNexus Core</option>
+            </select>
+            <button class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;" onclick="loadAuditLogs()">Refresh</button>
+          </div>
+        </div>
+        <p class="panel-desc">
+          Every API switch and payload routed is logged exclusively to the tenant's dedicated database/audit schema. Cross-company reads are physically and logically blocked.
+        </p>
+
+        <div class="data-table-container">
+          <table class="data-table" id="auditTable">
+            <thead>
+              <tr>
+                <th>Log ID</th>
+                <th>Timestamp</th>
+                <th>Endpoint Route</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th>Latency</th>
+                <th>Payload Preview</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody">
+              <!-- Filled via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 5: MCP AI BRIDGE -->
+    <div id="view-mcp-bridge" class="view-section">
+      <div class="two-col-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>TormentNexus MCP Server Capabilities</h2>
+            <span class="badge" style="color:var(--accent-cyan)">JSON-RPC 2.0 Compliance</span>
+          </div>
+          <p class="panel-desc">
+            Connected AI agent instances (Hermes, Ollama, Claude, Gemini) leverage Model Context Protocol to query routing topologies, dispatch payloads, and inspect isolated company state without privilege escalation.
+          </p>
+
+          <div class="console-box" id="mcpToolsConsole" style="height:320px;">
+// Loading MCP tool registry...
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Live Tenant Context Buffers</h2>
+            <span class="code-badge">Zero Context Bleeding</span>
+          </div>
+          <p class="panel-desc">
+            Real-time memory stream maintained for autonomous multi-agent swarms. Each tenant's context window is partitioned strictly within its own boundary.
+          </p>
+
+          <div class="console-box" id="mcpBufferConsole" style="height:320px; color:#a7f3d0;">
+// Awaiting MCP state synchronization events...
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div>HyperNexus VRL-1 &copy; 2026 United Beats LLC. All Rights Reserved.</div>
+    <div>Multi-Tenant Virtual Routing Layer | Radial Vector Architecture | Zero-Trust Boundary</div>
+  </footer>
+
+  <script>
+    // State
+    let tenants = [];
+    let telemetry = {};
+
+    function switchView(viewName) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      
+      const btn = Array.from(document.querySelectorAll('.nav-tab')).find(b => b.getAttribute('onclick')?.includes(viewName));
+      if (btn) btn.classList.add('active');
+
+      const target = document.getElementById(`view-${viewName}`);
+      if (target) {
+        target.classList.add('active');
+        if (viewName === 'radial-vault') {
+          loadTenantRegistry();
+          setTimeout(drawRadialVisualizer, 100);
+        } else if (viewName === 'audit-ledger') {
+          loadAuditLogs();
+        } else if (viewName === 'mcp-bridge') {
+          loadMcpInfo();
+        }
+      }
+    }
+
+    function syncSelectedKey() {
+      const select = document.getElementById('tenantSelect');
+      const input = document.getElementById('apiKeyInput');
+      input.value = select.value;
+      
+      // Update sample payload based on tenant
+      const editor = document.getElementById('payloadEditor');
+      const pathInput = document.getElementById('endpointPath');
+      if (select.value.includes('excel_legacy')) {
+        pathInput.value = 'leads/webhook/ingest';
+        editor.value = JSON.stringify({
+          lead_id: "lead_realestate_4401",
+          source: "MLS Detroit IDX Feed",
+          contact_name: "Marcus Vance",
+          property_interest: "Historic Loft District",
+          budget_usd: 850000
+        }, null, 2);
+      } else if (select.value.includes('united_beats')) {
+        pathInput.value = 'music/stream/ingest';
+        editor.value = JSON.stringify({
+          track_id: "trk_984210",
+          artist: "United Beats Artist Collective",
+          stream_bpm: 128,
+          venue: "Detroit Electronic Sound Stage"
+        }, null, 2);
+      } else {
+        pathInput.value = 'core/orchestration/heartbeat';
+        editor.value = JSON.stringify({
+          command: "TORMENTNEXUS_SYNC",
+          security_ring: 0,
+          cluster: "hypernexus_main"
+        }, null, 2);
+      }
+    }
+
+    async function fetchTelemetry() {
+      try {
+        const res = await fetch('/api/v1/telemetry');
+        if (res.ok) {
+          telemetry = await res.json();
+          document.getElementById('stat-dispatched').innerText = telemetry.total_requests;
+          document.getElementById('stat-latency').innerText = `${telemetry.avg_latency_ms} ms`;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadTenantRegistry() {
+      try {
+        const res = await fetch('/api/v1/tenants');
+        if (res.ok) {
+          tenants = await res.json();
+          document.getElementById('stat-tenants').innerText = tenants.length;
+          document.getElementById('stat-dbpools').innerText = tenants.length;
+          document.getElementById('stat-mcp').innerText = tenants.filter(t => t.mcp_enabled).length;
+
+          // Populate Table
+          const tbody = document.getElementById('tenantTableBody');
+          tbody.innerHTML = '';
+          tenants.forEach(t => {
+            const tr = document.createElement('tr');
+            const tierNum = t.radial_coords ? Math.floor(t.radial_coords.r) : 2;
+            tr.innerHTML = `
+              <td><strong>${t.company_name}</strong><br><span style="font-size:0.75rem; color:var(--text-dim); font-family:monospace;">${t.company_id}</span></td>
+              <td><span class="tag-tier tag-tier-${tierNum}">Ring ${t.radial_coords.r}</span></td>
+              <td><span class="code-badge">${t.target_api}</span></td>
+              <td><span class="code-badge" style="color:var(--text-dim);">${t.db_connection}</span></td>
+              <td><span style="color:${t.mcp_enabled ? 'var(--success)' : 'var(--text-dim)'}; font-weight:700;">${t.mcp_enabled ? 'ENABLED' : 'OFF'}</span></td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          // Also populate audit select options
+          const auditSel = document.getElementById('auditCompanySelect');
+          auditSel.innerHTML = '';
+          tenants.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.company_id;
+            opt.textContent = t.company_name;
+            auditSel.appendChild(opt);
+          });
+
+          drawRadialVisualizer();
+        }
+      } catch (e) {
+        console.error("Failed to load tenant registry:", e);
+      }
+    }
+
+    async function handleDispatch(e) {
+      e.preventDefault();
+      const apiKey = document.getElementById('apiKeyInput').value;
+      const method = document.getElementById('httpMethod').value;
+      const path = document.getElementById('endpointPath').value;
+      let payload = null;
+      try {
+        payload = JSON.parse(document.getElementById('payloadEditor').value);
+      } catch (err) {
+        alert("Invalid JSON payload.");
+        return;
+      }
+
+      const consoleBox = document.getElementById('dispatchConsole');
+      consoleBox.innerHTML = `[ROUTING] Intercepting request for path: /${path}...\n[RADIAL VAULT] Resolving coordinate vector...`;
+
+      try {
+        const start = performance.now();
+        const res = await fetch(`/mcp/dispatch/${path}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const elapsed = (performance.now() - start).toFixed(1);
+        const data = await res.json();
+
+        document.getElementById('dispatchLatency').innerText = `${elapsed} ms`;
+        if (data.company) {
+          document.getElementById('dispTarget').innerText = `${data.company} (${data.target_url})`;
+          document.getElementById('dispCoords').innerText = `r=${data.radial_ring || '1.0'}`;
+        }
+
+        consoleBox.innerHTML = `// [SUCCESS] HTTP ${res.status} DISPATCH COMPLETED IN ${elapsed}ms\n` +
+          `// TENANT IDENTIFIED: ${data.company} (${data.company_name || 'Verified'})\n` +
+          `// RADIAL RING: ${data.radial_ring} (Envelope Isolated)\n` +
+          `// ISOLATED DB AUDIT LOGGED: ${data.db_logged}\n` +
+          `// MCP AI AGENT SYNCHRONIZED: ${data.mcp_synced}\n\n` +
+          JSON.stringify(data, null, 2);
+
+        fetchTelemetry();
+      } catch (err) {
+        consoleBox.innerHTML = `// [ERROR] Dispatch Failed:\n${err.message}`;
+      }
+    }
+
+    async function handleOnboard(e) {
+      e.preventDefault();
+      const body = {
+        company_id: document.getElementById('newCompanyId').value.trim(),
+        company_name: document.getElementById('newCompanyName').value.trim(),
+        tier: document.getElementById('newTier').value,
+        api_key: document.getElementById('newApiKey').value.trim(),
+        target_api: document.getElementById('newTargetApi').value.trim(),
+        db_connection: document.getElementById('newDbConnection').value.trim(),
+        db_type: document.getElementById('newDbType').value,
+        rate_limit_rps: parseFloat(document.getElementById('newRateLimit').value),
+        mcp_enabled: document.getElementById('newMcpEnabled').checked,
+        metadata: { "onboarded_at": new Date().toISOString() }
+      };
+
+      try {
+        const res = await fetch('/api/v1/tenants', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+          alert(`Successfully onboarded ${body.company_name} into Radial Vector Vault!`);
+          document.getElementById('onboardForm').reset();
+          loadTenantRegistry();
+          switchView('radial-vault');
+        } else {
+          const err = await res.json();
+          alert(`Onboarding failed: ${err.detail || 'Unknown error'}`);
+        }
+      } catch (err) {
+        alert(`Error: ${err.message}`);
+      }
+    }
+
+    async function loadAuditLogs() {
+      const companyId = document.getElementById('auditCompanySelect').value;
+      if (!companyId) return;
+
+      try {
+        const res = await fetch(`/api/v1/audit/${companyId}`);
+        if (res.ok) {
+          const logs = await res.json();
+          const tbody = document.getElementById('auditTableBody');
+          tbody.innerHTML = '';
+          if (logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-dim);">No transactions recorded in this company silo yet. Dispatch a test payload to generate ledger entries.</td></tr>';
+            return;
+          }
+          logs.forEach(l => {
+            const tr = document.createElement('tr');
+            const dateStr = new Date(l.timestamp * 1000).toLocaleTimeString();
+            tr.innerHTML = `
+              <td>#${l.id}</td>
+              <td style="color:var(--text-dim);">${dateStr}</td>
+              <td><span class="code-badge">/${l.endpoint_path}</span></td>
+              <td><strong>${l.method}</strong></td>
+              <td><span style="color:var(--success); font-weight:700;">${l.upstream_status}</span></td>
+              <td>${l.execution_time_ms.toFixed(1)} ms</td>
+              <td><span style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">${l.payload_preview}</span></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadMcpInfo() {
+      try {
+        const resTools = await fetch('/mcp/tools');
+        if (resTools.ok) {
+          const tools = await resTools.json();
+          document.getElementById('mcpToolsConsole').innerText = JSON.stringify(tools, null, 2);
+        }
+
+        const resCtx = await fetch('/mcp/context/united_beats');
+        if (resCtx.ok) {
+          const ctx = await resCtx.json();
+          document.getElementById('mcpBufferConsole').innerText = JSON.stringify(ctx, null, 2);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function drawRadialVisualizer() {
+      const canvas = document.getElementById('radialCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const centerX = w / 2;
+      const centerY = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw concentric rings
+      const rings = [
+        { r: 40, label: "Ring 0: Core", color: "rgba(99, 102, 241, 0.4)" },
+        { r: 85, label: "Ring 1: United Beats", color: "rgba(236, 72, 153, 0.4)" },
+        { r: 130, label: "Ring 2: Pro", color: "rgba(6, 182, 212, 0.4)" },
+        { r: 175, label: "Ring 3: Standard", color: "rgba(156, 163, 175, 0.2)" }
+      ];
+
+      rings.forEach(ring => {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, ring.r, 0, 2 * Math.PI);
+        ctx.strokeStyle = ring.color;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+
+      // Center Node
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = "#6366f1";
+      ctx.fill();
+
+      // Render Tenant Nodes
+      tenants.forEach(t => {
+        const coords = t.radial_coords || { r: 1.0, theta: 0.5 };
+        // Map r (0.5 to 2.0) to pixel radii (40 to 175)
+        const pixelR = (coords.r / 2.0) * 175;
+        const x = centerX + pixelR * Math.cos(coords.theta);
+        const y = centerY + pixelR * Math.sin(coords.theta);
+
+        // Glow
+        const grad = ctx.createRadialGradient(x, y, 2, x, y, 12);
+        grad.addColorStop(0, coords.r <= 1.0 ? '#ec4899' : '#06b6d4');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Core Point
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = coords.r <= 1.0 ? '#ec4899' : '#06b6d4';
+        ctx.fill();
+
+        // Label
+        ctx.fillStyle = '#f3f4f6';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillText(t.company_name.split(' ')[0], x + 8, y + 4);
+      });
+    }
+
+    function resetDispatchSample() {
+      syncSelectedKey();
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', () => {
+      loadTenantRegistry();
+      fetchTelemetry();
+      setInterval(fetchTelemetry, 3000);
+    });
+  </script>
+</body>
+</html>
