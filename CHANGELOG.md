@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-11-16
+
+### Added
+- **Secure gateway integration (P1/P7/P8)**: `create_secure_app` in `api/gateway.py` wires `SecureRadialVault` to HTTP — `/secure/enroll` (key shown once), `/secure/ui` demo page, proof-header dispatch (`X-VRL1-*`), 403 with upstream never called on failure. Refuses to start without `VRL1_MASTER_KEY` unless `demo=True`.
+- **Merkle transparency log (P2)**: `core/transparency.py`, append-only enrollment log with inclusion proofs; root exposed at `/health` and on enroll.
+- **Invariant fuzz test (P3)**: 50-round cross-tenant/tamper property test in `tests/test_secure_gateway.py` (5 new tests, 40 total).
+- **Single version source (P4)**: `vrl1_version.py` reads `VERSION.md`; `src/config.py` and the secure gateway consume it.
+- **Benchmark harness (P5)**: `benchmarks/bench_gateway.py` + measured results in `docs/BENCHMARKS.md` (no extrapolated claims).
+- **CI (P6)**: `.github/workflows/tests.yml` runs the full suite on push/PR.
+- ROADMAP.md/TODO.md rewritten from live audit.
+
 ## [1.2.0] - 2026-11-16
 
 ### Added — Tier-1 corrected zero-trust engine

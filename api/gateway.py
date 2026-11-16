@@ -81,3 +81,122 @@ def _demo_vault() -> RadialVault:
 
 
 app = create_app()
+
+
+# ---------------------------------------------------------------------------
+# Secure mode (Tier-1): SecureRadialVault + proof-of-possession headers.
+# The demo create_app above is unchanged for local exploration; secure mode
+# refuses to start without VRL1_MASTER_KEY unless demo=True is explicit.
+# ---------------------------------------------------------------------------
+import os as _os
+
+from fastapi.responses import HTMLResponse as _HTMLResponse
+from pydantic import BaseModel as _BaseModel
+
+from core.secure_vault import SecureRadialVault
+from core.vrl1_algo import Ring, VRL1ZeroTrustEngine
+from vrl1_version import app_version as _app_version
+
+_DEMO_MASTER = b"demo-master-key-not-for-production!!"
+
+
+class _EnrollRequest(_BaseModel):
+    tenant_id: str
+    target_url: str
+    db_connection_string: str
+    scopes: list[str] = ["*"]
+
+
+def create_secure_app(master_key: bytes | None = None, demo: bool = False,
+                      transport: httpx.AsyncBaseTransport | None = None,
+                      current_epoch: int = 1) -> FastAPI:
+    if master_key is None:
+        env_key = _os.environ.get("VRL1_MASTER_KEY", "")
+        if env_key:
+            master_key = env_key.encode()
+        elif demo:
+            master_key = _DEMO_MASTER
+        else:
+            raise RuntimeError("VRL1_MASTER_KEY env (>=32 bytes) required, or demo=True")
+    engine = VRL1ZeroTrustEngine(master_key)
+    vault = SecureRadialVault(engine)
+    vault.register_tenant("tenant_a", Ring(0, 1 << 63))
+    vault.register_tenant("tenant_b", Ring(1 << 63, 1 << 64))
+    sapp = FastAPI(title="HyperNexus VRL-1 Secure Gateway", version=_app_version())
+    sapp.state.vault = vault
+    sapp.state.engine = engine
+    sapp.state.current_epoch = current_epoch
+
+    @sapp.get("/health")
+    async def shealth() -> dict:
+        return {"status": "healthy", "mode": "secure",
+                "transparency_root": vault.transparency_root()}
+
+    @sapp.get("/secure/ui", response_class=_HTMLResponse)
+    async def secure_ui() -> str:
+        return _SECURE_UI_HTML
+
+    @sapp.post("/secure/enroll")
+    async def enroll(req: _EnrollRequest) -> dict:
+        key, info = vault.enroll_generated_key(
+            req.tenant_id, current_epoch, req.target_url,
+            req.db_connection_string, req.scopes)
+        return {"api_key": key, "tenant_id": req.tenant_id,
+                "epoch": current_epoch, "radius": info["radius"],
+                "transparency_root": vault.transparency_root(),
+                "note": "Store this key now; it is shown once."}
+
+    @sapp.api_route("/mcp/dispatch/{path:path}", methods=sorted(_FORWARD_METHODS))
+    async def sdispatch(path: str, request: Request):
+        h = request.headers
+        api_key = h.get("x-api-key")
+        tenant = h.get("x-vrl1-tenant")
+        nonce = h.get("x-vrl1-nonce")
+        proof = h.get("x-vrl1-proof")
+        try:
+            epoch = int(h.get("x-vrl1-epoch", ""))
+            ts = int(h.get("x-vrl1-timestamp", ""))
+        except ValueError:
+            return JSONResponse(status_code=403, content={"detail": "Forbidden"})
+        if not (api_key and tenant and nonce and proof):
+            return JSONResponse(status_code=403, content={"detail": "Forbidden"})
+        body = await request.body()
+        try:
+            target = vault.authenticate(
+                tenant_id=tenant, api_key=api_key, epoch=epoch,
+                current_epoch=current_epoch, nonce=nonce, ts=ts,
+                method=request.method, path=request.url.path, body=body, proof=proof)
+        except (PermissionError, KeyError, ValueError):
+            return JSONResponse(status_code=403, content={"detail": "Forbidden"})
+        url = f"{target['target_url']}/{path}" if path else target["target_url"]
+        try:
+            async with httpx.AsyncClient(transport=transport, timeout=10.0) as client:
+                upstream = await client.request(request.method, url, content=body or None)
+        except httpx.HTTPError:
+            return JSONResponse(status_code=502, content={"detail": "Bad gateway"})
+        try:
+            payload = upstream.json()
+        except ValueError:
+            payload = {"upstream_text": upstream.text}
+        return JSONResponse(status_code=upstream.status_code, content={
+            "tenant_id": tenant, "upstream_status": upstream.status_code,
+            "upstream_response": payload})
+
+    return sapp
+
+
+_SECURE_UI_HTML = """<!doctype html><title>VRL-1 Secure Gateway</title>
+<h1>HyperNexus VRL-1 — Secure Mode</h1>
+<p>Enroll a tenant key (shown once), then dispatch with proof-of-possession headers.
+Client proof helper: <code>engine.make_proof(...)</code> in core/vrl1_algo.py.</p>
+<label>Tenant <select id="t"><option>tenant_a</option><option>tenant_b</option></select></label>
+<label>Target URL <input id="u" value="https://a.example.com" size="40"></label>
+<button onclick="enroll()">Enroll key</button><pre id="out"></pre>
+<script>
+async function enroll(){
+  const r = await fetch('/secure/enroll',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({tenant_id:document.getElementById('t').value,
+      target_url:document.getElementById('u').value, db_connection_string:'sqlite:///demo.db', scopes:['*']})});
+  document.getElementById('out').textContent = JSON.stringify(await r.json(), null, 2);
+}
+</script>"""

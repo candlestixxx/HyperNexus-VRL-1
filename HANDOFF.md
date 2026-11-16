@@ -1,24 +1,31 @@
-# Session Handoff & State Restoration — HyperNexus VRL-1
+# Session Handoff — HyperNexus VRL-1
 
-## 1. Executive Summary of Session
-In this session, the complete product **HyperNexus VRL-1 (Virtual Routing Layer 1)** was conceptualized, engineered, tested, and commercialized as a new product under the United Beats LLC / HyperNexus ecosystem.
-- Created GitHub repository: `candlestixxx/HyperNexus-VRL-1`.
-- Implemented full core Python engine with FastAPI, httpx, cryptography, and Pydantic v2.
-- Designed and verified O(1) Radial Vector Secret Vault with polar coordinate $(r, \theta, z)$ indexing and Fernet envelope encryption.
-- Built dynamic AI switchboard router with token-bucket rate limiting and zero cross-tenant leakage.
-- Developed isolated multi-tenant database connection pooling with SQLite audit ledgers.
-- Implemented JSON-RPC 2.0 Model Context Protocol (MCP) server and AI agent context bridge.
-- Created a sleek, responsive Developer Portal Single Page Application with interactive HTML5 Canvas visualizer and switchboard simulator.
-- Authored 18 automated unit and end-to-end integration tests (100% pass rate).
-- Produced comprehensive documentation: `BUSINESS_PLAN.md`, `VISION.md`, `MEMORY.md`, `DEPLOY.md`, `IDEAS.md`, `CHANGELOG.md`, `ROADMAP.md`, `TODO.md`, `VERSION.md`, `README.md`.
+## Current state (2026-11-16)
+- Version: see `VERSION.md` (single source; read via `vrl1_version.app_version()`). Latest: v1.3.0.
+- Branch: `main` only; no submodules; pushed to `origin` (github.com/candlestixxx/HyperNexus-VRL-1).
+- Tests: 40 passing (`python -m pytest -q`). Note: TestClient-based tests need socket access — inside the Muse sandbox they fail with WinError on socketpair; run escalated or locally.
 
-## 2. Key Architectural Decisions
-- Polar radial coordinates $(r, \theta, z)$ map security rings ($0.5$ Core, $1.0$ United Beats, $1.5$ Pro Realty, $2.0$ Standard) and angular SHA-256 projections to guarantee $O(1)$ lookup while eliminating cross-tenant boundary leakage.
-- Zero-downtime hot onboarding enables new corporate integrations to become active immediately without server reboot or code deployment.
-- Strict database isolation guarantees that write operations for `united_beats` can never access or contaminate `excel_legacy_realty`.
+## What shipped this session
+- v1.1.0 (`c8a8297`): float radial math core, vault, standalone gateway, manifesto/spec docs.
+- v1.2.0 (`95be886`): Tier-1 integer-torus engine (`core/vrl1_algo.py`), `SecureRadialVault`, AEAD records, proof-of-possession, nonce ledger, `docs/SPEC.md`. Corrected flaws in a pasted prototype: nonce removed from coordinate derivation, radius never projected into rings, stolen vectors useless without the key.
+- v1.3.0: secure gateway integration (`create_secure_app`, `/secure/enroll`, `/secure/ui`, `X-VRL1-*` headers), Merkle transparency log, invariant fuzz test, benchmark harness + measured doc, CI workflow, TODO P1–P8 all closed.
 
-## 3. How to Resume Work
-1. Ensure dependencies are installed: `pip install -r requirements.txt`.
-2. Run test suite: `python -m pytest -v`.
-3. Launch gateway: `python main.py` or `./start.sh` (or `start.bat` on Windows).
-4. Access Developer Portal at `http://localhost:8000/portal`.
+## Architecture in one paragraph
+`src/` = production portal gateway (FastAPI, Fernet vault, router, DB pools, MCP JSON-RPC). `core/` = math engines: legacy float (`vector_math.py`, `vault.py`) plus Tier-1 (`vrl1_algo.py`, `secure_vault.py`, `transparency.py`). `api/gateway.py` = standalone demo app + secure-mode app. Entry points: `python main.py` (8000), `uvicorn api.gateway:app` (8001, demo).
+
+## Known flags (do not "fix" silently)
+- Default master keys are hardcoded in `src/config.py` and `docker-compose.yml` for local demo. They are in git history from v1.0.0; purge only on explicit owner order. Secure mode (`create_secure_app`) already refuses demo keys unless `demo=True`.
+- Benchmark numbers in `docs/BENCHMARKS.md` are micro-benchmarks only. No external performance/energy claim until the full HTTP crucible exists.
+- ChaCha20Poly1305 substitutes for XChaCha20 (installed `cryptography` lacks XChaCha) — recorded in CHANGELOG v1.2.0.
+
+## What remains and why it's ordered this way
+ROADMAP Milestones 4–5: VSS threshold release, KMS/HSM custody, capability tokens, CUSUM, shared stores, then Rust port, ZK (field-native commitment designed with the circuit), BFT, TLA+. Each is multi-week; they are milestones, not TODO items.
+
+## Resume commands
+```powershell
+pip install -r requirements.txt
+python -m pytest -q
+python benchmarks\bench_gateway.py
+python main.py
+```
+Git in this sandbox needs: `$env:GIT_CONFIG_COUNT='1'; $env:GIT_CONFIG_KEY_0='safe.directory'; $env:GIT_CONFIG_VALUE_0='C:/Users/jakeg/workspace/HyperNexus VRL-1'` and escalated (real-user) execution for push, since sandbox credentials return 401.

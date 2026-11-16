@@ -12,7 +12,9 @@ from __future__ import annotations
 import threading
 from dataclasses import dataclass
 
-from core.vrl1_algo import Ring, VRL1ZeroTrustEngine
+from core.transparency import MerkleLog
+from core.vrl1_algo import Ring, VRL1ZeroTrustEngine, _canon
+import struct
 
 
 class ShardCollisionPanic(RuntimeError):
@@ -35,11 +37,16 @@ class _Sealed:
 
 
 class SecureRadialVault:
-    def __init__(self, engine: VRL1ZeroTrustEngine) -> None:
+    def __init__(self, engine: VRL1ZeroTrustEngine,
+                 transparency: MerkleLog | None = None) -> None:
         self.engine = engine
+        self.transparency = transparency if transparency is not None else MerkleLog()
         self._rings: dict[str, Ring] = {}
         self._by_shard: dict[tuple[int, int, int], _Sealed] = {}
         self._lock = threading.RLock()
+
+    def transparency_root(self) -> str:
+        return self.transparency.root()
 
     def register_tenant(self, tenant_id: str, ring: Ring) -> None:
         with self._lock:
@@ -68,6 +75,9 @@ class SecureRadialVault:
                 {"target_url": target_url.rstrip("/"),
                  "db_connection_string": db_connection_string})
             self._by_shard[shards] = _Sealed(tenant_id, radius, epoch, scopes, blob)
+            self.transparency.append(_canon(
+                tenant_id.encode(), struct.pack(">Q", radius),
+                struct.pack(">3Q", *shards), struct.pack(">q", epoch)))
         return {"tenant_id": tenant_id, "radius": radius, "shards": shards, "epoch": epoch}
 
     def enroll_generated_key(self, tenant_id: str, epoch: int, target_url: str,

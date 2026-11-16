@@ -1,26 +1,30 @@
 # Long-Term Structural Roadmap — HyperNexus VRL-1
 
-## Milestone 1: Zero-Trust Foundation & United Beats Flagship Launch (v1.0.0) [COMPLETED]
-- [x] O(1) Radial Vector Secret Vault with envelope encryption.
-- [x] Multi-vector dynamic routing switchboard with token-bucket rate limiting.
-- [x] Tenant-isolated database connection pooling and transaction audit trail.
-- [x] Model Context Protocol (MCP) server hooks for AI agents.
-- [x] Interactive Developer Portal with Canvas radial vector visualizer.
-- [x] 100% automated test coverage across all core systems.
+## Done
+- [x] v1.0.0 `src/` gateway: portal UI, Fernet radial vault, dynamic router, DB audit pools, MCP JSON-RPC (18 tests)
+- [x] v1.1.0 float radial math core (`core/vector_math.py`, `core/vault.py`), standalone dispatch gateway (28 tests)
+- [x] v1.2.0 Tier-1 integer-torus engine: HKDF tenant keys, proof-of-possession, AEAD vault, replay ledger (35 tests) — [docs/SPEC.md](docs/SPEC.md)
 
-## Milestone 2: Real Estate CRM & High-Throughput MLS Scaling (v1.1.0 - Q1 2026)
-- [ ] Direct MySQL/Postgres connection pooling drivers for Excel Legacy Realty.
-- [ ] Streaming MLS/IDX XML/JSON payload parsers with dynamic schema mapping.
-- [ ] Webhook retry backoff queue with dead-letter storage.
-- [ ] Multi-region active-active database pool replication.
+## Milestone 3: Secure Gateway Integration (v1.3.x)
+- [ ] Wire `SecureRadialVault` into `api/gateway.py` (proof headers, 403 drop, no demo vault on secure path)
+- [ ] Merkle transparency log over vault enrollments (rollback/deletion detection)
+- [ ] Property-based invariant fuzzing (ring disjointness, cross-tenant rejection at scale)
+- [ ] Single version source: app reads `VERSION.md`, no hardcoded versions
+- [ ] Gateway-vs-baseline benchmark harness + published results in `docs/BENCHMARKS.md`
+- [ ] GitHub Actions CI running the full suite on push
 
-## Milestone 3: TormentNexus Multi-Agent Swarm Orchestration (v1.2.0 - Q2 2026)
-- [ ] Dynamic OpenAPI-to-MCP tool synthesizers for newly onboarded tenants.
-- [ ] Bidirectional Server-Sent Events (SSE) streaming for real-time AI agent interactions.
-- [ ] Agentic anomaly detection and schema validation using lightweight local SLMs.
+## Milestone 4: Enterprise Tier (v1.4.x)
+- [ ] Threshold (Feldman/Pedersen VSS) credential release; no whole secrets on one node
+- [ ] KMS/HSM master-key custody; env-required secrets, no shipped defaults
+- [ ] Capability-attenuated MCP agent tokens (Biscuit-style caveats)
+- [ ] CUSUM anomaly detection + circuit breaker per shard
+- [ ] Shared stores (Redis/Postgres) behind nonce-ledger/vault interfaces for horizontal scale
 
-## Milestone 4: Kernel-Accelerated & Edge Distribution (v2.0.0 - Q3 2026)
-- [ ] Rust core rewrite of radial vector coordinate lookup via PyO3 bindings.
-- [ ] Cloudflare Workers / Fastly Compute@Edge proxy bridge.
-- [ ] eBPF socket routing for bare-metal Linux deployments.
-- [ ] Zero-knowledge proof (ZK-SNARK) tenant authentication protocol.
+## Milestone 5: Research Tier (v2.x)
+- [ ] Rust core port (PyO3) of coordinate derivation/verification
+- [ ] ZK ring-membership: field-native commitment (Poseidon-class) designed with the circuit — not a hash swap
+- [ ] BFT consensus for multi-writer ring state
+- [ ] TLA+ model of register/persist/reload invariants + independent penetration test
+
+## Explicitly not promised
+Passing a named audit (SOC 2, Common Criteria) is a process outcome, not a code feature. Open-source adoption and published benchmarks precede any platform licensing conversation.

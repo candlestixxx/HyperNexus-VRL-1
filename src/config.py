@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     APP_NAME: str = "HyperNexus VRL-1 Gateway"
+    # Single version source is VERSION.md (see vrl1_version.app_version);
+    # FastAPI wiring overrides this default from there at import time.
     APP_VERSION: str = "1.0.0"
     ENVIRONMENT: str = "production"
     DEBUG: bool = False
@@ -45,4 +47,8 @@ class Settings(BaseSettings):
     # Allowed CORS Origins
     CORS_ORIGINS: List[str] = ["*"]
 
-settings = Settings()
+try:
+    from vrl1_version import app_version as _vrl1_app_version
+    settings = Settings(APP_VERSION=_vrl1_app_version())
+except Exception:
+    settings = Settings()
