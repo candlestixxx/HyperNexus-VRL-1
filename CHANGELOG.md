@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-11-16
+
+### Added — Tier-1 corrected zero-trust engine
+- `core/vrl1_algo.py`: `d=4` uint64 integer-torus coordinates (static per epoch — nonce removed from derivation, fixing the pasted prototype's fatal flaw), HKDF per-tenant keys, per-request HMAC proof-of-possession (stolen vectors are useless), tenant-scoped expiring nonce ledger that burns nonces only after full verification, length-prefixed canonical encoding, ChaCha20-Poly1305 AEAD records bound to (tenant, radius, shards, epoch, scopes).
+- `core/secure_vault.py`: disjoint-ring tenant registration, rejection-sampled generated keys, out-of-ring BYO key refusal, shard-collision panic, dual-epoch (rotation) authentication.
+- `tests/test_vrl1_algo.py`: 7 tests — end-to-end auth, stolen-vector rejection, replay + nonce-poisoning resistance, cross-ring/overlap refusal, AEAD move/tamper/scope-escalation failure, collision panic. 35 tests total passing.
+- `docs/SPEC.md`: locked parameter spec, defensible pitch wording, measured micro-benchmark, honest audit-readiness gap list.
+- Note: XChaCha20-Poly1305 substituted with ChaCha20Poly1305 (installed `cryptography` build lacks XChaCha); same AEAD family, shorter nonce — recorded here, not hidden.
+
 ## [1.1.0] - 2026-11-16
 
 ### Added
