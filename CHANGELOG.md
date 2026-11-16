@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-16
+
+### Added
+- **VRL-1 Math Core (`core/`)**: `RadialVectorEngine` implementing Proofs I–III (SHA-256 spatilization to `(r, θ)`, disjoint-ring radial gate, O(1)-in-N angular routing) with numpy; `RadialVault` in-memory vault indexed by angular shard with overlap-rejecting tenant registration.
+- **Standalone Async Gateway (`api/gateway.py`)**: `POST /mcp/dispatch/{path:path}` resolving `X-API-Key` at the math layer, forwarding via `httpx.AsyncClient`, instant 403 with no DB/log write on rejection.
+- **Geometric Proof Tests**: `tests/test_zero_trust.py` + `tests/test_gateway_dispatch.py` (10 new tests; 28 total passing), including cross-tenant vector rejection and upstream-never-called assertions.
+- **Docs**: `docs/MATHEMATICS.md` (proofs + honest limits), `MANIFESTO.md` (investor/partner narrative), `LLM_BUILD_INSTRUCTIONS.md` (agent build directive).
+- `numpy` added to `requirements.txt`.
+
 ## [1.0.0] - 2026-11-14
 
 ### Added

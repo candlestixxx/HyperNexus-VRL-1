@@ -63,6 +63,15 @@ It routes, manages, and isolates database connections and third-party API payloa
 
 ---
 
+## VRL-1 Math Core (new in 1.1.0)
+
+The `core/` + `api/` packages implement the three tree-ring proofs as executable code, beside the `src/` gateway:
+
+- [core/vector_math.py](core/vector_math.py) — `RadialVectorEngine`: SHA-256 → polar `(r, θ)`, radial gate, O(1) angular routing
+- [core/vault.py](core/vault.py) — `RadialVault`: disjoint-ring tenants, shard-indexed endpoints
+- [api/gateway.py](api/gateway.py) — standalone FastAPI dispatch: `uvicorn api.gateway:app --port 8001`
+- Math, stated honestly: [docs/MATHEMATICS.md](docs/MATHEMATICS.md) · Pitch narrative: [MANIFESTO.md](MANIFESTO.md)
+
 ## Quickstart
 
 ### Run with Python
