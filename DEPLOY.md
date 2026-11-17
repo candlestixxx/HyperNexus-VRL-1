@@ -89,6 +89,8 @@ Capability-attenuated agent tokens are minted by the admin at `POST /secure/mint
 
 A CUSUM circuit breaker (fail-closed) trips per tenant and per shard under an auth-failure spike; open circuits are visible at `/secure/circuits` and in `/health`. While open, requests are rejected before the proof/nonce machinery.
 
+Shared stores: `VRL1ZeroTrustEngine(nonce_store=...)` and `SecureRadialVault(usage_store=...)` accept `NonceStore` / `CapabilityUsageStore` implementations (`core/stores.py`). The in-repo SQLite (WAL) backends share state across processes; Redis/Postgres drivers can implement the same protocols for horizontal scale.
+
 ---
 
 ## 5. Verification & Testing

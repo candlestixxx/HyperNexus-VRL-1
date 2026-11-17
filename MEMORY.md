@@ -48,4 +48,7 @@
 - A CUSUM circuit breaker fails closed per tenant + per shard: while open, requests
   are rejected before proof/nonce verification, so a brute-force flood never burns
   the victim's nonce ledger. Runtime state only (not persisted).
+- The hot-path ledgers (replay nonce + capability usage) are behind protocols
+  (`NonceStore`, `CapabilityUsageStore`); SQLite/WAL is the verifiable shared
+  backend, and Redis/Postgres drivers can implement the same protocols.
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

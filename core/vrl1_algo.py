@@ -29,6 +29,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
+from core.stores import NonceStore
+
 UINT64 = 1 << 64
 
 
@@ -90,12 +92,13 @@ class NonceLedger:
 
 
 class VRL1ZeroTrustEngine:
-    def __init__(self, master_key: bytes, nonce_ledger: NonceLedger | None = None) -> None:
+    def __init__(self, master_key: bytes, nonce_store: NonceStore | None = None) -> None:
         if len(master_key) < 32:
             raise ValueError("master_key must be >= 32 bytes (use KMS/HSM in production)")
         self._master = master_key
         self.d = 4
-        self.nonces = nonce_ledger or NonceLedger()
+        # In-memory NonceLedger by default; any NonceStore (e.g. SQLite) works.
+        self.nonces = nonce_store if nonce_store is not None else NonceLedger()
         self._tenant_keys: dict[str, bytes] = {}
         self._lock = threading.Lock()
 

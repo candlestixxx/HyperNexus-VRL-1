@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-11-17
+
+### Added
+- **Shared-store interfaces** (`core/stores.py`): `NonceStore` and `CapabilityUsageStore` protocols with verifiable SQLite (WAL) backends. The engine (`VRL1ZeroTrustEngine(nonce_store=...)`) and vault (`SecureRadialVault(usage_store=...)`) now consume these interfaces, so the hot-path replay and capability-usage ledgers can move to a shared store (and later Redis/Postgres) without touching call sites.
+- 5 new tests (64 total): SQLite nonce replay/expiry/shared-across-instances, capability usage budget, engine with a shared nonce store, and cross-instance capability budget exhaustion.
+
 ## [1.6.0] - 2026-11-17
 
 ### Added

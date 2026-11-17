@@ -20,6 +20,7 @@ from core.capability import CapabilityError, CapabilityUsageLedger, scopes_satis
 from core.capability import mint as _mint_capability
 from core.capability import parse_and_verify as _parse_capability
 from core.security_monitor import CUSUMAnomalyDetector
+from core.stores import CapabilityUsageStore
 from core.transparency import MerkleLog
 from core.vrl1_algo import Ring, VRL1ZeroTrustEngine, _canon
 import struct
@@ -49,16 +50,18 @@ class SecureRadialVault:
     def __init__(self, engine: VRL1ZeroTrustEngine,
                  transparency: MerkleLog | None = None,
                  persistence_path: str | None = None,
-                 monitor: CUSUMAnomalyDetector | None = None) -> None:
+                 monitor: CUSUMAnomalyDetector | None = None,
+                 usage_store: CapabilityUsageStore | None = None) -> None:
         self.engine = engine
         self.transparency = transparency if transparency is not None else MerkleLog()
         self.persistence_path = persistence_path
         self._monitor = monitor if monitor is not None else CUSUMAnomalyDetector()
+        # In-memory capability usage by default; any CapabilityUsageStore works.
+        self._usage = usage_store if usage_store is not None else CapabilityUsageLedger()
         self._rings: dict[str, Ring] = {}
         self._by_shard: dict[tuple[int, int, int], _Sealed] = {}
         # tenant_id -> enrolled shards (capability minting target resolution)
         self._tenant_shards: dict[str, set[tuple[int, int, int]]] = {}
-        self._usage = CapabilityUsageLedger()
         self._lock = threading.RLock()
         if persistence_path:
             self._load()

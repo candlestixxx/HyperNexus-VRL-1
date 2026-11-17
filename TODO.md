@@ -7,7 +7,8 @@ single-cycle tasks below — highest priority first.
 ## Next (in order)
 - [x] **Capability-attenuated MCP agent tokens** — signed, caveated tokens (scopes, expiry, path prefix, max uses) minted with the admin key and enforced on the secure dispatch path. *Rationale: closes the "agent holds a full API key" gap before CUSUM/shared stores.*
 - [x] **CUSUM anomaly detection + per-shard circuit breaker** — detect auth-failure spikes and trip a breaker that rejects a shard without burning its nonce ledger. *Rationale: fail-closed under brute-force before an attacker can exhaust the replay ledger.*
-- [ ] **Shared-store interfaces (Redis/Postgres)** behind `NonceLedger` + vault persistence backends. *Rationale: horizontal-scale prerequisite; the stateless engine already separates these behind narrow interfaces.*
+- [x] **Shared-store interfaces (SQLite/WAL)** behind `NonceLedger` + capability-usage backends; Redis/Postgres drivers plug in via the same protocols. *Rationale: horizontal-scale prerequisite; the stateless engine already separates these behind narrow interfaces.*
+- [ ] **Redis/Postgres concrete drivers** implementing the same `NonceStore` / `CapabilityUsageStore` protocols. *Blocked on an external service choice; the interfaces are in place.*
 
 ## Blocked / external
 - [ ] **KMS/HSM master-key custody** — external service integration; the env-required portion is done. *Blocked on infra choice.*

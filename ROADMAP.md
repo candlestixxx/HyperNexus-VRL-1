@@ -5,13 +5,13 @@
 - [x] v1.1.0 float radial math core (`core/vector_math.py`, `core/vault.py`), standalone dispatch gateway (28 tests)
 - [x] v1.2.0 Tier-1 integer-torus engine: HKDF tenant keys, proof-of-possession, AEAD vault, replay ledger (35 tests) — [docs/SPEC.md](docs/SPEC.md)
 
-## Milestone 3: Secure Gateway Integration (v1.3.x)
-- [ ] Wire `SecureRadialVault` into `api/gateway.py` (proof headers, 403 drop, no demo vault on secure path)
-- [ ] Merkle transparency log over vault enrollments (rollback/deletion detection)
-- [ ] Property-based invariant fuzzing (ring disjointness, cross-tenant rejection at scale)
-- [ ] Single version source: app reads `VERSION.md`, no hardcoded versions
-- [ ] Gateway-vs-baseline benchmark harness + published results in `docs/BENCHMARKS.md`
-- [ ] GitHub Actions CI running the full suite on push
+## Milestone 3: Secure Gateway Integration (v1.3.x — shipped)
+- [x] Wire `SecureRadialVault` into `api/gateway.py` (proof headers, 403 drop, no demo vault on secure path)
+- [x] Merkle transparency log over vault enrollments (rollback/deletion detection)
+- [x] Property-based invariant fuzzing (ring disjointness, cross-tenant rejection at scale)
+- [x] Single version source: app reads `VERSION.md`, no hardcoded versions
+- [x] Gateway-vs-baseline benchmark harness + published results in `docs/BENCHMARKS.md`
+- [x] GitHub Actions CI running the full suite on push
 
 ## Milestone 4: Enterprise Tier (v1.4.x)
 - [ ] Threshold (Feldman/Pedersen VSS) credential release; no whole secrets on one node
@@ -20,7 +20,8 @@
 - [x] Signed tamper-evident vault persistence (rollback/deletion detection at rest)
 - [x] Capability-attenuated MCP agent tokens (scope/expiry/path/max-uses caveats)
 - [x] CUSUM anomaly detection + circuit breaker per shard (fail-closed brute-force defense)
-- [ ] Shared stores (Redis/Postgres) behind nonce-ledger/vault interfaces for horizontal scale
+- [x] Shared-store interfaces (nonce + capability usage) with SQLite/WAL backend
+- [ ] Redis/Postgres concrete drivers (pluggable via the same interfaces — external services)
 
 ## Milestone 5: Research Tier (v2.x)
 - [ ] Rust core port (PyO3) of coordinate derivation/verification
