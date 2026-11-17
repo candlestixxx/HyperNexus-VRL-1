@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2026-11-17
+
+### Added
+- **BFT consensus core (PBFT)** (`core/bft.py`): `N = 3f+1` replicas agree on an ordered log of operations (multi-writer ring state) via the 3-phase protocol — pre-prepare → prepare (2f) → commit (2f+1) → execute — with deterministic in-process message passing. Safety (no two honest replicas fork) is proven by tests; view-change (primary-failure recovery) is the documented next increment.
+- 4 new tests (97 total): honest-primary liveness, agreement under a passive fault, safety under a forking Byzantine primary, and request deduplication.
+
 ## [1.13.0] - 2026-11-17
 
 ### Added

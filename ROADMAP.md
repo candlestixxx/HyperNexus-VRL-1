@@ -28,7 +28,7 @@
 - [x] Rust core port (PyO3): `derive_coordinate`, `make_proof`, `spatialize_key` (~2×); `verify_request` orchestration stays in Python
 - [x] ZK ring-membership proof: Schnorr ring signature (AOS) over RFC 3526 group 14 (`core/ring_sig.py`)
 - [ ] Field-native Poseidon commitment designed with the circuit (SNARK-friendliness) — the "not a hash swap" refinement
-- [ ] BFT consensus for multi-writer ring state
+- [x] BFT consensus core (PBFT 3-phase agreement/safety; `core/bft.py`); view-change recovery remains
 - [ ] TLA+ model of register/persist/reload invariants + independent penetration test
 
 ## Explicitly not promised

@@ -70,4 +70,8 @@
   (`core/ring_sig.py`): it proves a signer holds one of N ring public keys
   without revealing which, using its own Fiat-Shamir/SHA-256 path. The
   field-native Poseidon commitment for SNARK-friendliness is still a research item.
+- BFT consensus (`core/bft.py`) is a PBFT core: N=3f+1 replicas, 3-phase
+  agreement (pre-prepare → prepare(2f) → commit(2f+1) → execute) with
+  deterministic in-process messaging. Safety holds under a forking Byzantine
+  primary; view-change (liveness recovery) is the next increment.
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.
