@@ -13,5 +13,8 @@ single-cycle tasks below — highest priority first.
 ## Blocked / external
 - [ ] **KMS/HSM master-key custody** — external service integration; the env-required portion is done. *Blocked on infra choice.*
 
+## Next (in code)
+- [x] **Threshold (Feldman VSS) credential release** — `core/threshold.py`: t-of-n Shamir shares with Feldman commitments + share verification + reconstruction, so no single node holds a whole credential. *Rationale: the last Milestone-4 code item before multi-node/BFT (Milestone 5).*
+
 ## Research tier (v2.x — NOT short-term; see ROADMAP Milestone 5)
 - Rust core port (PyO3), ZK ring-membership (field-native commitment), BFT consensus, TLA+ model.

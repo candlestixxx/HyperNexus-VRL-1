@@ -22,8 +22,8 @@ Implementation: [core/vrl1_algo.py](../core/vrl1_algo.py), [core/secure_vault.py
 `derive_coordinate` ≈ 7.5 µs/op (~133k derivations/s/core) vs 0.13 µs for a raw dict lookup. Honest reading: negligible next to network/DB latency, ~56× a bare lookup — the gap the Rust port closes. Full gateway-vs-baseline benchmark still owed (ROADMAP Phase 1).
 
 ## Audit readiness — what exists vs what an audit still requires
-Exists: locked spec, exact-match math, tamper-evident records, replay/freshness, 35 passing tests incl. stolen-vector and collision-panic cases.
-Still required before claiming "audit-passed": Merkle transparency log (rollback/deletion detection), threshold (VSS) credential release, KMS/HSM key custody, multi-node consensus for ring state, independent penetration test, SOC 2 / Common Criteria process controls. No honest vendor passes a defense audit on code alone — budget for the process, not just the protocol.
+Exists: locked spec, exact-match math, tamper-evident records, replay/freshness, Merkle transparency log, capability-attenuated tokens, CUSUM circuit breaker, shared-store interfaces, Feldman VSS threshold release, 70 passing tests incl. stolen-vector, collision-panic, and tamper-detection cases.
+Still required before claiming "audit-passed": KMS/HSM key custody, multi-node consensus (BFT) for ring state, independent penetration test, SOC 2 / Common Criteria process controls. No honest vendor passes a defense audit on code alone — budget for the process, not just the protocol.
 
 ## Scale & market path
 Scale: stateless engines scale horizontally once the nonce ledger and vault move to shared stores (Redis/Postgres) behind the same interfaces; BFT consensus is the gate for multi-writer ring state.

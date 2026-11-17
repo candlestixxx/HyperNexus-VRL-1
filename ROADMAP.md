@@ -14,7 +14,7 @@
 - [x] GitHub Actions CI running the full suite on push
 
 ## Milestone 4: Enterprise Tier (v1.4.x)
-- [ ] Threshold (Feldman/Pedersen VSS) credential release; no whole secrets on one node
+- [x] Threshold (Feldman VSS) credential release; no whole secrets on one node
 - [x] Env-required secrets, no shipped defaults (secure mode refuses demo keys unless `demo=True`; `VRL1_MASTER_KEY` + `VRL1_ADMIN_KEY` required)
 - [ ] KMS/HSM master-key custody (external service integration)
 - [x] Signed tamper-evident vault persistence (rollback/deletion detection at rest)
