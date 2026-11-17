@@ -51,3 +51,6 @@ rust/vrl1_core/target/
 
 # TLA+ tooling (download via: curl -L .../tla2tools.jar -o tools/tla2tools.jar)
 tools/tla2tools.jar
+
+# TLC model-checker artifacts
+spec/states/
