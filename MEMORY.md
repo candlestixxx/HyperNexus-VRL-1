@@ -74,4 +74,8 @@
   agreement (pre-prepare → prepare(2f) → commit(2f+1) → execute) plus view-change
   liveness (VIEW-CHANGE(2f+1) → NEW-VIEW → re-propose). Safety holds under a
   forking Byzantine primary; view-change recovers from a silent/forking primary.
+- The vault's register/persist/reload invariants are formalized in `spec/Vault.tla`
+  and model-checked with TLC (`java -cp tools/tla2tools.jar tlc2.TLC -config
+  spec/Vault.cfg spec/Vault.tla`, run from `spec/`): unique ids, disjoint rings,
+  and reload-only-from-valid-snapshot all hold.
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

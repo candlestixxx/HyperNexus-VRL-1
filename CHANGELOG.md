@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.0] - 2026-11-17
+
+### Added
+- **TLA+ model** (`spec/Vault.tla` + `spec/Vault.cfg`): formalizes the vault's register (unique ids, disjoint rings), persist (atomic signed snapshot), and reload (only from a validly-signed disk) invariants, model-checked with TLC (410 distinct states, no error). `tests/test_tla.py` re-runs TLC when Java + `tools/tla2tools.jar` are present.
+
 ## [1.15.0] - 2026-11-17
 
 ### Added

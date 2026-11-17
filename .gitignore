@@ -48,3 +48,6 @@ Thumbs.db
 rust/vrl1_core/target/
 *.pyd
 *.so
+
+# TLA+ tooling (download via: curl -L .../tla2tools.jar -o tools/tla2tools.jar)
+tools/tla2tools.jar

@@ -1,9 +1,9 @@
 # Session Handoff — HyperNexus VRL-1
 
 ## Current state (2026-11-17)
-- Version: `VERSION.md` = **1.15.0** (single source, read via `vrl1_version.app_version()`).
+- Version: `VERSION.md` = **1.16.0** (single source, read via `vrl1_version.app_version()`).
 - Branch: `main` only; **no submodules**; remote `origin` = github.com/candlestixxx/HyperNexus-VRL-1.
-- Tests: **99 passing** (`python -m pytest -q`). Rust/Redis/Postgres/Vault tests skip when their tooling or test deps are missing.
+- Tests: **100 passing** (`python -m pytest -q`). Rust/Redis/Postgres/Vault/TLA+ tests skip when their tooling or test deps are missing.
 - Tree is **clean**; all commits pushed through `ee59422`.
 
 ## What shipped this session (v1.4.0 → v1.9.0)
@@ -20,13 +20,14 @@
 - **v1.13.0** — ZK ring membership (`core/ring_sig.py`: Schnorr ring signature, AOS).
 - **v1.14.0** — BFT consensus core (`core/bft.py`: PBFT 3-phase agreement).
 - **v1.15.0** — PBFT view-change (liveness recovery after a failed/Byzantine primary).
+- **v1.16.0** — TLA+ model of register/persist/reload invariants (`spec/Vault.tla`), TLC-checked.
 
 ## Architecture in one paragraph
 `src/` = legacy production portal gateway (FastAPI, Fernet vault, router, DB pools, MCP JSON-RPC). `core/` = Tier-1 engines: `vrl1_algo.py` (integer-torus engine, proof-of-possession, AEAD, replay, cached proof/tenant keys, optional Rust), `secure_vault.py` (AEAD vault + admin gating + signed persistence + capability mint/auth + circuit breaker), `transparency.py` (Merkle log), `capability.py` (caveated tokens), `security_monitor.py` (CUSUM breaker), `stores.py` (shared-store backends), `threshold.py` (Feldman VSS), `_rust.py` (PyO3 shim). `api/gateway.py` = demo app (`create_app`) + secure app (`create_secure_app`). Entry points: `python main.py` (8000), `uvicorn api.gateway:app` (8001, demo), `uvicorn api.gateway:create_secure_app --factory` (secure mode).
 
 ## What remains and why it's ordered this way
 - **Field-native Poseidon commitment designed with the circuit** — the SNARK-friendliness refinement of the ZK ring-membership work (the "not a hash swap" part). The sound ring-membership proof (`core/ring_sig.py`) is done.
-- **TLA+ model + independent pen test** — the remaining Milestone 5 item (TLA+ needs the model checker to verify).
+- **Independent penetration test** — a process outcome, not code.
 - **HSM hardware integration** — optional provider-specific follow-on to the Vault custody path (same `MasterKeySource` interface).
 
 ## Known flags (do not "fix" silently)

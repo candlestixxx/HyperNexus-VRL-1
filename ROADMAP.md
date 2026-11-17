@@ -29,7 +29,8 @@
 - [x] ZK ring-membership proof: Schnorr ring signature (AOS) over RFC 3526 group 14 (`core/ring_sig.py`)
 - [ ] Field-native Poseidon commitment designed with the circuit (SNARK-friendliness) — the "not a hash swap" refinement
 - [x] BFT consensus (PBFT 3-phase agreement + view-change liveness; `core/bft.py`)
-- [ ] TLA+ model of register/persist/reload invariants + independent penetration test
+- [x] TLA+ model of register/persist/reload invariants (model-checked with TLC)
+- [ ] Independent penetration test (process, not code)
 
 ## Explicitly not promised
 Passing a named audit (SOC 2, Common Criteria) is a process outcome, not a code feature. Open-source adoption and published benchmarks precede any platform licensing conversation.

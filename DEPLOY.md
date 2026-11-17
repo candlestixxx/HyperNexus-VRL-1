@@ -95,6 +95,16 @@ A CUSUM circuit breaker (fail-closed) trips per tenant and per shard under an au
 
 Shared stores: `VRL1ZeroTrustEngine(nonce_store=...)` and `SecureRadialVault(usage_store=...)` accept `NonceStore` / `CapabilityUsageStore` implementations. Backends: SQLite/WAL (`core/stores.py`), Redis (`core/stores_redis.py`, atomic `SET NX EX` / `INCR`), and Postgres (`core/stores_postgres.py`, atomic `ON CONFLICT`). Redis is tested against `fakeredis`; Postgres against `embedded-postgres` (a real local PostgreSQL).
 
+### TLA+ model check
+
+The register/persist/reload invariants are formalized in `spec/Vault.tla` and model-checked with TLC (needs Java + `tools/tla2tools.jar`):
+
+```bash
+# one-time: curl -L https://github.com/tlaplus/tlaplus/releases/latest/download/tla2tools.jar -o tools/tla2tools.jar
+cd spec
+java -cp ../tools/tla2tools.jar tlc2.TLC -config Vault.cfg Vault.tla
+```
+
 ### Rust core (optional, PyO3)
 
 The coordinate/proof primitives have an optional Rust implementation. Build + install it once:
