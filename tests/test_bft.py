@@ -95,3 +95,44 @@ def test_duplicate_request_is_deduplicated():
     net.run()
     for r in reps:
         assert list(r.log.values()) == [op]
+
+
+def test_view_change_recovers_from_byzantine_primary():
+    # A forking primary prevents any commit; after view change the honest
+    # replicas elect a new primary and commit the SAME operation.
+    net = Network()
+    r0 = ForkingPrimary(0, 4, 1, net)
+    r1, r2, r3 = Replica(1, 4, 1, net), Replica(2, 4, 1, net), Replica(3, 4, 1, net)
+    for r in (r0, r1, r2, r3):
+        net.add_replica(r)
+    op = b"enroll tenant_a"
+    net.broadcast(Message("REQUEST", 0, 0, digest(op), op, sender=-1, client=0))
+    net.run()
+    assert all(r.log == {} for r in (r1, r2, r3))  # nothing committed pre-change
+    # Honest replicas time out and change view; new primary = 1 % 4 = replica 1.
+    for r in (r1, r2, r3):
+        r.start_view_change()
+    net.run()
+    for r in (r1, r2, r3):
+        assert list(r.log.values()) == [op]  # all honest replicas agree
+
+
+def test_view_change_recovers_from_silent_primary():
+    class SilentPrimary(Replica):
+        def _handle_request(self, m: Message) -> None:
+            return  # never pre-prepares
+
+    net = Network()
+    r0 = SilentPrimary(0, 4, 1, net)
+    r1, r2, r3 = Replica(1, 4, 1, net), Replica(2, 4, 1, net), Replica(3, 4, 1, net)
+    for r in (r0, r1, r2, r3):
+        net.add_replica(r)
+    op = b"rotate epoch 2"
+    net.broadcast(Message("REQUEST", 0, 0, digest(op), op, sender=-1, client=0))
+    net.run()
+    assert all(r.log == {} for r in (r1, r2, r3))
+    for r in (r1, r2, r3):
+        r.start_view_change()
+    net.run()
+    for r in (r1, r2, r3):
+        assert list(r.log.values()) == [op]

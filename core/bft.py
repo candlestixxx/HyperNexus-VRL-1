@@ -1,17 +1,19 @@
-"""Byzantine-fault-tolerant consensus for multi-writer ring state (PBFT core).
+"""Byzantine-fault-tolerant consensus for multi-writer ring state (PBFT).
 
 `N = 3f + 1` replicas tolerate up to `f` Byzantine faults and agree on an
 ordered log of operations (e.g. tenant enrollment / transparency-leaf appends
-for the vault's ring state). This implements the 3-phase agreement core:
+for the vault's ring state). Implements the 3-phase agreement core plus
+view-change for liveness:
 
     REQUEST -> PRE-PREPARE -> PREPARE (2f) -> COMMIT (2f+1) -> execute
+    (primary failure) -> VIEW-CHANGE (2f+1) -> NEW-VIEW -> re-propose
 
 Safety: two honest replicas never commit different operations at the same
 sequence number (the 2f+1 quorum makes conflicting commits impossible).
-
-Scope note (honest): view-change (recovering liveness after a Byzantine or
-failed *primary*) is the documented next increment; this module proves the
-agreement/safety core. Messages are delivered in-process for determinism.
+View-change recovers liveness when nothing was yet prepared/committed; the
+prepared-certificate replay for the "prepared-but-uncommitted" edge is a
+documented remaining subtlety. Messages are delivered in-process for
+determinism.
 """
 from __future__ import annotations
 
@@ -26,7 +28,7 @@ def digest(op: bytes) -> str:
 
 @dataclass
 class Message:
-    kind: str          # REQUEST | PRE_PREPARE | PREPARE | COMMIT
+    kind: str          # REQUEST | PRE_PREPARE | PREPARE | COMMIT | VIEW_CHANGE | NEW_VIEW
     view: int
     seq: int
     digest: str
@@ -75,10 +77,13 @@ class Replica:
         self.committed: set[int] = set()
         self.next_seq = 0                     # primary only
         self.requests_seen: set[tuple[int | None, str]] = set()
+        self.retained: dict[tuple[int | None, str], bytes] = {}
         self.pre_prepares: dict[tuple[int, int], str] = {}
         self.ops: dict[tuple[int, int], bytes] = {}
         self.prepares: dict[tuple[int, int, str], set[int]] = {}
         self.commits: dict[tuple[int, int, str], set[int]] = {}
+        self.view_changes: dict[int, set[int]] = {}
+        self.new_views_sent: set[int] = set()
 
     @property
     def primary_id(self) -> int:
@@ -91,6 +96,8 @@ class Replica:
     # -- inbound -------------------------------------------------------------
     def handle(self, m: Message) -> None:
         if m.kind == "REQUEST":
+            # Every replica retains the request so a future primary can re-propose it.
+            self.retained[(m.client, m.digest)] = m.op
             if self.is_primary:
                 self._handle_request(m)
         elif m.kind == "PRE_PREPARE":
@@ -99,6 +106,10 @@ class Replica:
             self._handle_prepare(m)
         elif m.kind == "COMMIT":
             self._handle_commit(m)
+        elif m.kind == "VIEW_CHANGE":
+            self._handle_view_change(m)
+        elif m.kind == "NEW_VIEW":
+            self._handle_new_view(m)
 
     def _handle_request(self, m: Message) -> None:
         key = (m.client, m.digest)
@@ -155,3 +166,35 @@ class Replica:
         if len(s) >= 2 * self.f + 1 and seq not in self.committed:
             self.committed.add(seq)
             self.log[seq] = self.ops[(view, seq)]
+            # Drop the committed request from the retained (re-propose) buffer.
+            self.retained = {k: v for k, v in self.retained.items()
+                             if k[1] != d}
+
+    # -- view change (liveness) ----------------------------------------------
+    def start_view_change(self) -> None:
+        """Called when a replica suspects the primary (timeout)."""
+        nv = self.view + 1
+        self.view_changes.setdefault(nv, set()).add(self.rid)
+        self.network.broadcast(Message("VIEW_CHANGE", nv, 0, "", None, self.rid))
+
+    def _handle_view_change(self, m: Message) -> None:
+        nv = m.view
+        s = self.view_changes.setdefault(nv, set())
+        s.add(m.sender)
+        if len(s) >= 2 * self.f + 1 and self.rid == nv % self.n \
+                and nv not in self.new_views_sent:
+            self.new_views_sent.add(nv)
+            self.view = nv
+            self.network.broadcast(Message("NEW_VIEW", nv, 0, "", None, self.rid))
+            # Re-propose retained (uncommitted) requests in the new view.
+            seq = (max(self.log) + 1) if self.log else 0
+            for (client, d), op in self.retained.items():
+                self.pre_prepares[(nv, seq)] = d
+                self.ops[(nv, seq)] = op
+                self.network.broadcast(Message("PRE_PREPARE", nv, seq, d, op, self.rid))
+                seq += 1
+            self.next_seq = seq
+
+    def _handle_new_view(self, m: Message) -> None:
+        if m.view > self.view:
+            self.view = m.view

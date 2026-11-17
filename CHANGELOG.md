@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2026-11-17
+
+### Added
+- **PBFT view-change (liveness recovery)** (`core/bft.py`): after a failed or Byzantine primary, replicas elect a new primary via VIEW-CHANGE (2f+1) → NEW-VIEW and re-propose retained uncommitted requests, so the honest majority still commits. Recovers liveness for the "nothing prepared/committed yet" case; prepared-certificate replay remains a documented subtlety.
+- 2 new tests (99 total): view-change recovery from a forking primary and from a silent primary.
+
 ## [1.14.0] - 2026-11-17
 
 ### Added
