@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from core.capability import CapabilityError, CapabilityUsageLedger, scopes_satisfied
 from core.capability import mint as _mint_capability
 from core.capability import parse_and_verify as _parse_capability
+from core.security_monitor import CUSUMAnomalyDetector
 from core.transparency import MerkleLog
 from core.vrl1_algo import Ring, VRL1ZeroTrustEngine, _canon
 import struct
@@ -47,10 +48,12 @@ class _Sealed:
 class SecureRadialVault:
     def __init__(self, engine: VRL1ZeroTrustEngine,
                  transparency: MerkleLog | None = None,
-                 persistence_path: str | None = None) -> None:
+                 persistence_path: str | None = None,
+                 monitor: CUSUMAnomalyDetector | None = None) -> None:
         self.engine = engine
         self.transparency = transparency if transparency is not None else MerkleLog()
         self.persistence_path = persistence_path
+        self._monitor = monitor if monitor is not None else CUSUMAnomalyDetector()
         self._rings: dict[str, Ring] = {}
         self._by_shard: dict[tuple[int, int, int], _Sealed] = {}
         # tenant_id -> enrolled shards (capability minting target resolution)
@@ -164,14 +167,28 @@ class SecureRadialVault:
                 continue
         raise RuntimeError("no in-ring key found; ring is too narrow for rejection sampling")
 
+    def open_circuits(self) -> dict[str, float]:
+        """Currently-open circuit-breaker keys -> cooldown seconds remaining."""
+        return self._monitor.open_circuits()
+
     def authenticate(self, *, tenant_id: str, api_key: str, epoch: int,
                      current_epoch: int, nonce: str, ts: int, method: str,
                      path: str, body: bytes, proof: str,
                      now: float | None = None) -> dict:
-        """Verify a request end-to-end and return its decrypted routing record."""
-        ring = self._rings[tenant_id]
+        """Verify a request end-to-end and return its decrypted routing record.
+
+        A CUSUM circuit breaker gates the tenant and the derived shard: while
+        open, the request is rejected before the proof/nonce machinery, so a
+        flood is shed cheaply and never burns the victim's nonce ledger."""
+        ring = self._rings.get(tenant_id)
+        if ring is None:
+            raise PermissionError("unknown tenant")
+        tkey = f"tenant:{tenant_id}"
+        if self._monitor.is_open(tkey, now):
+            raise PermissionError("circuit breaker open (tenant)")
         # Dual-read: current epoch, then previous during rotation window.
         sealed = None
+        target_shards = None
         for ep in (epoch, epoch - 1):
             _, shards = self.engine.derive_coordinate(tenant_id, api_key, ep)
             with self._lock:
@@ -179,17 +196,32 @@ class SecureRadialVault:
             if candidate is not None:
                 sealed, target_shards = candidate, shards
                 break
+        key_shards = target_shards if target_shards is not None else shards
+        skey = f"shard:{tenant_id}:{key_shards[0]}:{key_shards[1]}:{key_shards[2]}"
+        if self._monitor.is_open(skey, now):
+            raise PermissionError("circuit breaker open (shard)")
+
+        def _fail(reason: str):
+            self._monitor.record_failure(tkey, now)
+            self._monitor.record_failure(skey, now)
+            raise PermissionError(reason)
+
         if sealed is None:
-            raise PermissionError("unmapped shard")
-        record = self.engine.open_record(tenant_id, sealed.radius, target_shards,
-                                         sealed.epoch, sealed.scopes, sealed.blob)
+            _fail("unmapped shard")
+        try:
+            record = self.engine.open_record(tenant_id, sealed.radius, target_shards,
+                                             sealed.epoch, sealed.scopes, sealed.blob)
+        except Exception:
+            _fail("record failed AEAD authentication")
         ok = self.engine.verify_request(
             tenant_id=tenant_id, api_key=api_key, epoch=sealed.epoch,
             current_epoch=current_epoch, ring=ring, target_shards=target_shards,
             nonce=nonce, ts=ts, method=method, path=path, body=body,
             proof=proof, now=now)
         if not ok:
-            raise PermissionError("VRL-1 verification failed")
+            _fail("VRL-1 verification failed")
+        self._monitor.record_success(tkey, now)
+        self._monitor.record_success(skey, now)
         return {"tenant_id": tenant_id, "scopes": sealed.scopes, **record}
 
     # -- capability-attenuated agent tokens -----------------------------------

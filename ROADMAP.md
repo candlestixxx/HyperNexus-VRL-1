@@ -19,7 +19,7 @@
 - [ ] KMS/HSM master-key custody (external service integration)
 - [x] Signed tamper-evident vault persistence (rollback/deletion detection at rest)
 - [x] Capability-attenuated MCP agent tokens (scope/expiry/path/max-uses caveats)
-- [ ] CUSUM anomaly detection + circuit breaker per shard
+- [x] CUSUM anomaly detection + circuit breaker per shard (fail-closed brute-force defense)
 - [ ] Shared stores (Redis/Postgres) behind nonce-ledger/vault interfaces for horizontal scale
 
 ## Milestone 5: Research Tier (v2.x)

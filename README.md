@@ -1,8 +1,8 @@
 # HyperNexus VRL-1: Universal Multi-Tenant API Gateway
 
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](VERSION.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](VERSION.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-55%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-59%20passed-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
 **HyperNexus VRL-1 (Virtual Routing Layer 1)** is an intelligent, zero-trust, multi-tenant API gateway and dynamic control plane engineered for **United Beats LLC** and enterprise integration ecosystems.
@@ -73,6 +73,7 @@ The `core/` + `api/` packages implement the three tree-ring proofs as executable
 - [core/vrl1_algo.py](core/vrl1_algo.py) — Tier-1 integer-torus engine: proof-of-possession, replay ledger, AEAD records
 - [core/secure_vault.py](core/secure_vault.py) — `SecureRadialVault` + admin-gated enrollment + signed persistence
 - [core/capability.py](core/capability.py) — capability-attenuated agent tokens (scope/expiry/path/max-uses caveats)
+- [core/security_monitor.py](core/security_monitor.py) — CUSUM anomaly detection + fail-closed circuit breaker
 - Math, stated honestly: [docs/MATHEMATICS.md](docs/MATHEMATICS.md) · Pitch narrative: [MANIFESTO.md](MANIFESTO.md)
 
 ## Quickstart
@@ -106,7 +107,7 @@ Run the automated test suite:
 ```bash
 python -m pytest -v
 ```
-All 55 tests cover cryptographic envelope roundtrips, radial coordinate derivation, dynamic routing, database audit pooling, MCP JSON-RPC compliance, proof-of-possession, replay resistance, transparency proofs, persistence/tamper detection, and capability-token caveats.
+All 59 tests cover cryptographic envelope roundtrips, radial coordinate derivation, dynamic routing, database audit pooling, MCP JSON-RPC compliance, proof-of-possession, replay resistance, transparency proofs, persistence/tamper detection, capability-token caveats, and circuit-breaker fail-closed behavior.
 
 ---
 

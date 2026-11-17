@@ -45,4 +45,7 @@
 - Capability-attenuated tokens let agents act on a tenant's behalf without the raw
   key; caveats (scope subset, expiry, path prefix, max-use budget) are enforced at
   dispatch. A `*` enrollment scope grants any attenuation.
+- A CUSUM circuit breaker fails closed per tenant + per shard: while open, requests
+  are rejected before proof/nonce verification, so a brute-force flood never burns
+  the victim's nonce ledger. Runtime state only (not persisted).
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

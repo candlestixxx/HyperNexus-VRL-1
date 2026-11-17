@@ -87,6 +87,8 @@ Vault persistence is opt-in via `create_secure_app(persistence_path=...)`: state
 
 Capability-attenuated agent tokens are minted by the admin at `POST /secure/mint-token` (admin-key gated) and used by agents on the dispatch path via the `X-VRL1-Capability` header (or `Authorization: Bearer <token>`). Tokens carry scope-subset, expiry, path-prefix, and max-use caveats.
 
+A CUSUM circuit breaker (fail-closed) trips per tenant and per shard under an auth-failure spike; open circuits are visible at `/secure/circuits` and in `/health`. While open, requests are rejected before the proof/nonce machinery.
+
 ---
 
 ## 5. Verification & Testing

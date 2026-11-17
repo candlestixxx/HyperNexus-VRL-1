@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-11-17
+
+### Added
+- **CUSUM anomaly detection + circuit breaker** (`core/security_monitor.py`): a fail-closed brute-force defense. Auth failures feed a per-tenant + per-shard CUSUM control chart; crossing a threshold opens a circuit for a cooldown window. While open, the vault rejects before the proof/nonce machinery, so a flood is shed cheaply and the victim's nonce ledger is never burned.
+- `SecureRadialVault` accepts an injectable `monitor`; `open_circuits()` exposes open breakers. Gateway `/health` and a new `/secure/circuits` endpoint surface them; `/secure/ui` gains a circuit-breaker status panel.
+- 4 new tests (59 total): CUSUM trip/recovery, baseline tolerance, cooldown reporting, and fail-closed-without-burning-nonce.
+
 ## [1.5.0] - 2026-11-17
 
 ### Added
