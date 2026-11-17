@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-11-17
+
+### Added
+- **Redis shared-store drivers** (`core/stores_redis.py`): `RedisNonceStore` (atomic `SET NX EX`) and `RedisCapabilityUsageStore` (atomic `INCR`), drop-in for the `NonceStore` / `CapabilityUsageStore` protocols. The `redis` import is lazy so the rest of the package works without it; verified against `fakeredis` (no server). The Postgres driver remains (same interface, needs a live server to verify).
+- 4 new tests (79 total): replay/expiry, cross-instance sharing, usage budget, and engine integration over Redis.
+
 ## [1.9.1] - 2026-11-17
 
 ### Changed

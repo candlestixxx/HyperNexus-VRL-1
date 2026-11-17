@@ -21,7 +21,8 @@
 - [x] Capability-attenuated MCP agent tokens (scope/expiry/path/max-uses caveats)
 - [x] CUSUM anomaly detection + circuit breaker per shard (fail-closed brute-force defense)
 - [x] Shared-store interfaces (nonce + capability usage) with SQLite/WAL backend
-- [ ] Redis/Postgres concrete drivers (pluggable via the same interfaces — external services)
+- [x] Redis drivers (`RedisNonceStore`, `RedisCapabilityUsageStore`) verified via fakeredis
+- [ ] Postgres concrete driver (pluggable via the same interfaces — needs a live server to verify)
 
 ## Milestone 5: Research Tier (v2.x)
 - [x] Rust core port (PyO3): `derive_coordinate`, `make_proof`, `spatialize_key` (~2×); `verify_request` orchestration stays in Python
