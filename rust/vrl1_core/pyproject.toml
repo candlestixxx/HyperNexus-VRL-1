@@ -1,0 +1,12 @@
+[build-system]
+requires = ["maturin>=1.8,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "vrl1-core"
+version = "0.1.0"
+description = "Rust core for HyperNexus VRL-1 coordinate derivation"
+requires-python = ">=3.10"
+
+[tool.maturin]
+module-name = "_vrl1_core"

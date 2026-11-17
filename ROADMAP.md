@@ -24,7 +24,7 @@
 - [ ] Redis/Postgres concrete drivers (pluggable via the same interfaces — external services)
 
 ## Milestone 5: Research Tier (v2.x)
-- [ ] Rust core port (PyO3) of coordinate derivation/verification
+- [x] Rust core port (PyO3): `derive_coordinate`, `make_proof`, `spatialize_key` (~2×); `verify_request` orchestration stays in Python
 - [ ] ZK ring-membership: field-native commitment (Poseidon-class) designed with the circuit — not a hash swap
 - [ ] BFT consensus for multi-writer ring state
 - [ ] TLA+ model of register/persist/reload invariants + independent penetration test

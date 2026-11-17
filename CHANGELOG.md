@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-11-17
+
+### Added
+- **Rust core (PyO3)** (`rust/vrl1_core/`): ports `derive_coordinate`, `make_proof`, and `spatialize_key` (d=4) to Rust. `core/_rust.py` imports the compiled `_vrl1_core` extension when available and falls back to pure Python otherwise. Measured ~2–2.5× speedup on the ported primitives (dev laptop, single core).
+- Engine `proof_key` is now cached (it feeds every gateway `verify_request`, so the per-call HKDF was the dominant cost).
+- `benchmarks/bench_rust.py` + 5 parity tests (75 total) proving Rust output equals the Python reference.
+
 ## [1.8.0] - 2026-11-17
 
 ### Added

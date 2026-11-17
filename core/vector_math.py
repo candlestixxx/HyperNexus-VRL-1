@@ -19,6 +19,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from core import _rust
+
 TWO_PI = 2.0 * np.pi
 _MAX_UINT64 = float(2**64 - 1)
 
@@ -45,6 +47,10 @@ class RadialVectorEngine:
         """Map `api_key` to (radius, angles). Deterministic; same key, same vector."""
         if not api_key:
             raise ValueError("api_key must be non-empty")
+        # Rust path covers the locked/default d=4, ring_width=100 case.
+        if _rust.RUST_AVAILABLE and self.dimensions == 4 and self.ring_width == 100.0:
+            radius, angles = _rust.rust_spatialize_key(api_key)
+            return radius, np.asarray(angles, dtype=np.float64)
         digest = hashlib.sha256(api_key.encode("utf-8")).digest()  # 32 bytes
         frac = int.from_bytes(digest[:8], "big") / _MAX_UINT64     # [0, 1]
         radius = self.ring_width * (1.0 + frac)                    # [W, 2W)

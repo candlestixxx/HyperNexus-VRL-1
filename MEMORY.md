@@ -30,7 +30,9 @@
   `secure_vault.py` (AEAD vault + signed persistence), `transparency.py` (Merkle log),
   plus the legacy float engine in `vector_math.py` / `vault.py`.
 - `api/gateway.py`: standalone demo app (`create_app`) + secure app (`create_secure_app`).
-- `tests/`: unit + integration tests (44 passing at v1.4.0).
+- `core/_rust.py`: optional PyO3 import shim (falls back to pure Python when the
+  extension is absent). `rust/vrl1_core/`: the Rust crate (build with `maturin`).
+- `tests/`: unit + integration tests (75 passing at v1.9.0).
 
 ## 4. Tier-1 Security Invariants (v1.2+ / v1.4)
 - Coordinates are **static per (tenant, key, epoch)** — the nonce never enters the
@@ -55,4 +57,7 @@
   2048-bit safe prime): t-of-n Shamir shares in GF(Q), commitments C_j = G^{a_j},
   and a share verifies iff G^{f(i)} == prod_j C_j^{i^j} mod P. Multi-node
   distribution/orchestration is Milestone 5 (BFT).
+- The Rust core ports `derive_coordinate` / `make_proof` / `spatialize_key` (d=4);
+  `core/_rust.py` imports it when built and otherwise falls back to pure Python.
+  `proof_key` is cached because it feeds every gateway `verify_request`.
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

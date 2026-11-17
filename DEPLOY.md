@@ -91,6 +91,20 @@ A CUSUM circuit breaker (fail-closed) trips per tenant and per shard under an au
 
 Shared stores: `VRL1ZeroTrustEngine(nonce_store=...)` and `SecureRadialVault(usage_store=...)` accept `NonceStore` / `CapabilityUsageStore` implementations (`core/stores.py`). The in-repo SQLite (WAL) backends share state across processes; Redis/Postgres drivers can implement the same protocols for horizontal scale.
 
+### Rust core (optional, PyO3)
+
+The coordinate/proof primitives have an optional Rust implementation. Build + install it once:
+
+```bash
+# needs Rust (rustup) + maturin
+pip install maturin
+cd rust/vrl1_core
+maturin build --release
+pip install --force-reinstall target/wheels/vrl1_core-*.whl
+```
+
+When `_vrl1_core` is importable, the engine/vault use it automatically; otherwise they fall back to pure Python (no behavior change, ~2× slower on the ported primitives).
+
 ---
 
 ## 5. Verification & Testing

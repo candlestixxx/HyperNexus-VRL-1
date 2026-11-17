@@ -43,3 +43,8 @@ logs/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Rust (PyO3 core) build artifacts
+rust/vrl1_core/target/
+*.pyd
+*.so

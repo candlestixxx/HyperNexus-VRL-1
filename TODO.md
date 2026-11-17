@@ -17,4 +17,5 @@ single-cycle tasks below — highest priority first.
 - [x] **Threshold (Feldman VSS) credential release** — `core/threshold.py`: t-of-n Shamir shares with Feldman commitments + share verification + reconstruction, so no single node holds a whole credential. *Rationale: the last Milestone-4 code item before multi-node/BFT (Milestone 5).*
 
 ## Research tier (v2.x — NOT short-term; see ROADMAP Milestone 5)
-- Rust core port (PyO3), ZK ring-membership (field-native commitment), BFT consensus, TLA+ model.
+- [x] Rust core port (PyO3): `derive_coordinate` / `make_proof` / `spatialize_key` (~2× measured).
+- [ ] ZK ring-membership (field-native commitment), BFT consensus, TLA+ model.

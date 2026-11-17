@@ -29,6 +29,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
+from core import _rust
 from core.stores import NonceStore
 
 UINT64 = 1 << 64
@@ -100,6 +101,7 @@ class VRL1ZeroTrustEngine:
         # In-memory NonceLedger by default; any NonceStore (e.g. SQLite) works.
         self.nonces = nonce_store if nonce_store is not None else NonceLedger()
         self._tenant_keys: dict[str, bytes] = {}
+        self._proof_keys: dict[tuple[str, str], bytes] = {}
         self._lock = threading.Lock()
 
     # -- key hierarchy ------------------------------------------------------
@@ -121,14 +123,27 @@ class VRL1ZeroTrustEngine:
     # -- coordinates (static per epoch; NO nonce here) ------------------------
     def derive_coordinate(self, tenant_id: str, api_key: str, epoch: int
                           ) -> tuple[int, tuple[int, int, int]]:
+        if _rust.RUST_AVAILABLE:
+            radius, shards = _rust.rust_derive_coordinate(
+                self._tenant_key(tenant_id), tenant_id, api_key, epoch)
+            return radius, tuple(shards)
         msg = _canon(tenant_id.encode(), api_key.encode(), struct.pack(">q", epoch))
         digest = hmac.new(self._tenant_key(tenant_id), msg, hashlib.sha256).digest()
         return _u64s(digest)
 
     def proof_key(self, tenant_id: str, api_key: str) -> bytes:
-        """Key the client uses to prove possession per request."""
-        return HKDF(algorithm=hashes.SHA256(), length=32, salt=None,
-                    info=b"vrl1-proof:" + tenant_id.encode()).derive(api_key.encode())
+        """Key the client uses to prove possession per request.
+
+        Cached: the gateway re-derives this on every `verify_request`, so an
+        uncached HKDF here would dominate the proof HMAC it feeds."""
+        cache_key = (tenant_id, api_key)
+        with self._lock:
+            key = self._proof_keys.get(cache_key)
+            if key is None:
+                key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None,
+                           info=b"vrl1-proof:" + tenant_id.encode()).derive(api_key.encode())
+                self._proof_keys[cache_key] = key
+            return key
 
     # -- per-request proof ------------------------------------------------------
     @staticmethod
@@ -138,6 +153,9 @@ class VRL1ZeroTrustEngine:
 
     def make_proof(self, tenant_id: str, api_key: str, nonce: str, ts: int,
                    method: str, path: str, body: bytes = b"") -> str:
+        if _rust.RUST_AVAILABLE:
+            return _rust.rust_make_proof(
+                self.proof_key(tenant_id, api_key), nonce, ts, method, path, body)
         return hmac.new(self.proof_key(tenant_id, api_key),
                         self._proof_msg(nonce, ts, method, path, body),
                         hashlib.sha256).hexdigest()
