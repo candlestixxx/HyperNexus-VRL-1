@@ -15,7 +15,9 @@
 
 ## Milestone 4: Enterprise Tier (v1.4.x)
 - [ ] Threshold (Feldman/Pedersen VSS) credential release; no whole secrets on one node
-- [ ] KMS/HSM master-key custody; env-required secrets, no shipped defaults
+- [x] Env-required secrets, no shipped defaults (secure mode refuses demo keys unless `demo=True`; `VRL1_MASTER_KEY` + `VRL1_ADMIN_KEY` required)
+- [ ] KMS/HSM master-key custody (external service integration)
+- [x] Signed tamper-evident vault persistence (rollback/deletion detection at rest)
 - [ ] Capability-attenuated MCP agent tokens (Biscuit-style caveats)
 - [ ] CUSUM anomaly detection + circuit breaker per shard
 - [ ] Shared stores (Redis/Postgres) behind nonce-ledger/vault interfaces for horizontal scale

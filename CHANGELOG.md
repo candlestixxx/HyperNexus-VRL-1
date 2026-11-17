@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-11-17
+
+### Added
+- **Admin-gated enrollment (secrets-hygiene hardening)**: `/secure/enroll` now requires an `x-vrl1-admin-key` header matching `admin_key` param → `VRL1_ADMIN_KEY` env → demo-generated key. Missing/wrong key returns 403 before any vault mutation. A demo-generated key is surfaced via `/secure/demo-admin-key` and stderr **only** in demo mode; in real mode that endpoint returns 404 and the key never travels over HTTP.
+- **Signed, tamper-evident vault persistence**: `SecureRadialVault(persistence_path=...)` atomically persists rings, AEAD-sealed records, and transparency leaves. The persisted transparency root carries an HMAC signature (`VRL1ZeroTrustEngine.sign_root` / `verify_root_signature`); reload verifies signature + root and refuses rolled-back or forged state files.
+- `MerkleLog.export_state()` / `load_state()` for log serialization.
+- 4 new tests (44 total): admin-key gating (missing + wrong), demo key surfacing + hiding, persistence reload, and rollback/tamper rejection.
+
 ## [1.3.0] - 2026-11-16
 
 ### Added

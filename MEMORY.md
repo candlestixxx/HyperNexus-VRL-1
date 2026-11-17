@@ -26,4 +26,20 @@
 - `src/db/pool_manager.py`: Multi-tenant DB session manager and audit logger.
 - `src/mcp/hooks.py`: MCP tool definitions and AI agent context bridge.
 - `src/portal/index.html`: Responsive developer portal UI with HTML5 canvas visualizer.
-- `tests/`: 18 comprehensive unit and end-to-end integration tests.
+- `core/`: Tier-1 math engines — `vrl1_algo.py` (integer torus + proof-of-possession),
+  `secure_vault.py` (AEAD vault + signed persistence), `transparency.py` (Merkle log),
+  plus the legacy float engine in `vector_math.py` / `vault.py`.
+- `api/gateway.py`: standalone demo app (`create_app`) + secure app (`create_secure_app`).
+- `tests/`: unit + integration tests (44 passing at v1.4.0).
+
+## 4. Tier-1 Security Invariants (v1.2+ / v1.4)
+- Coordinates are **static per (tenant, key, epoch)** — the nonce never enters the
+  coordinate; it only protects the per-request proof. Exact integer equality only.
+- The nonce ledger burns a nonce **only after** full verification, so failed attempts
+  cannot poison a victim's nonce. It fails closed when full.
+- Records are AEAD-bound to (tenant, radius, shards, epoch, scopes); any move/tamper/
+  scope-escalation fails `InvalidTag` organically.
+- Secure mode gates enrollment behind an admin key and refuses to run without a
+  ≥32-byte master key (unless `demo=True`). Vault persistence signs its transparency
+  root, so rollback/forgery is detected on load.
+- Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

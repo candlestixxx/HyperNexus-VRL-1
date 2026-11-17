@@ -68,6 +68,23 @@ docker run -d -p 8000:8000 --name hypernexus-gateway hypernexus-vrl1:latest
 | `OLLAMA_ENDPOINT` | `http://localhost:11434`| Optional local LLM endpoint for AI hooks |
 | `HERMES_AGENT_ENDPOINT` | `http://localhost:8081` | Optional Hermes Agent swarm endpoint |
 
+### Secure Mode (Tier-1 gateway, `api/gateway.py`)
+
+The secure app refuses to start without real key material:
+
+```bash
+export VRL1_MASTER_KEY="$(python -c 'import secrets;print(secrets.token_urlsafe(32))')"
+export VRL1_ADMIN_KEY="$(python -c 'import secrets;print(secrets.token_urlsafe(24))')"
+uvicorn api.gateway:create_secure_app --factory --port 8001
+```
+
+| Variable | Required | Description |
+| :--- | :--- | :--- |
+| `VRL1_MASTER_KEY` | yes (≥32 bytes) | Master key for tenant/proof/record/signature derivation; refused if missing unless `demo=True` |
+| `VRL1_ADMIN_KEY` | yes | Gates `/secure/enroll`; refused if missing unless `demo=True` (which auto-generates and prints it) |
+
+Vault persistence is opt-in via `create_secure_app(persistence_path=...)`: state is written atomically and its transparency root is HMAC-signed, so a rolled-back or forged state file is refused on the next load. In demo mode the auto-generated admin key is printed to stderr and exposed at `/secure/demo-admin-key` only.
+
 ---
 
 ## 5. Verification & Testing

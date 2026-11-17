@@ -168,6 +168,15 @@ class VRL1ZeroTrustEngine:
         # Replay: burn the nonce only now that everything else passed.
         return self.nonces.check_and_record(tenant_id, nonce, now=now)
 
+    def sign_root(self, root_hex: str) -> str:
+        """HMAC signature over a transparency root (master-derived signing key)."""
+        sig_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None,
+                       info=b"vrl1-sign:transparency").derive(self._master)
+        return hmac.new(sig_key, bytes.fromhex(root_hex), hashlib.sha256).hexdigest()
+
+    def verify_root_signature(self, root_hex: str, signature: str) -> bool:
+        return hmac.compare_digest(self.sign_root(root_hex), signature)
+
     # -- AEAD record binding ------------------------------------------------------
     def _record_key(self, tenant_id: str) -> bytes:
         return HKDF(algorithm=hashes.SHA256(), length=32, salt=None,

@@ -28,6 +28,14 @@ class MerkleLog:
     def __len__(self) -> int:
         return len(self._leaves)
 
+    def export_state(self) -> list[str]:
+        with self._lock:
+            return [leaf.hex() for leaf in self._leaves]
+
+    def load_state(self, leaves_hex: list[str]) -> None:
+        with self._lock:
+            self._leaves = [bytes.fromhex(x) for x in leaves_hex]
+
     def _level(self, nodes: list[bytes]) -> list[bytes]:
         out = []
         for i in range(0, len(nodes), 2):
