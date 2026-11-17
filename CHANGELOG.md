@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-11-17
+
+### Added
+- **PostgreSQL shared-store drivers** (`core/stores_postgres.py`): `PostgresNonceStore` (atomic `INSERT ... ON CONFLICT DO NOTHING`) and `PostgresCapabilityUsageStore` (atomic `... ON CONFLICT DO UPDATE ... RETURNING used`), drop-in for the `NonceStore` / `CapabilityUsageStore` protocols. Verified against a real local PostgreSQL 18 via `embedded-postgres`.
+- 4 new tests (83 total): nonce replay/expiry, cross-instance sharing, usage budget, and engine integration over Postgres.
+
 ## [1.10.0] - 2026-11-17
 
 ### Added

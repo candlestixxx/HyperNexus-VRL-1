@@ -22,7 +22,7 @@
 - [x] CUSUM anomaly detection + circuit breaker per shard (fail-closed brute-force defense)
 - [x] Shared-store interfaces (nonce + capability usage) with SQLite/WAL backend
 - [x] Redis drivers (`RedisNonceStore`, `RedisCapabilityUsageStore`) verified via fakeredis
-- [ ] Postgres concrete driver (pluggable via the same interfaces — needs a live server to verify)
+- [x] Postgres driver (`PostgresNonceStore`, `PostgresCapabilityUsageStore`) verified via embedded-postgres
 
 ## Milestone 5: Research Tier (v2.x)
 - [x] Rust core port (PyO3): `derive_coordinate`, `make_proof`, `spatialize_key` (~2×); `verify_request` orchestration stays in Python

@@ -51,9 +51,9 @@
   are rejected before proof/nonce verification, so a brute-force flood never burns
   the victim's nonce ledger. Runtime state only (not persisted).
 - The hot-path ledgers (replay nonce + capability usage) are behind protocols
-  (`NonceStore`, `CapabilityUsageStore`); SQLite/WAL is the verifiable shared
-  backend, and Redis drivers (`core/stores_redis.py`, atomic `SET NX EX` / `INCR`,
-  verified via fakeredis) + a Postgres driver can implement the same protocols.
+  (`NonceStore`, `CapabilityUsageStore`) with SQLite/WAL, Redis (atomic
+  `SET NX EX`/`INCR`, verified via fakeredis), and Postgres (atomic
+  `ON CONFLICT`, verified via embedded-postgres) backends.
 - Threshold credential release uses Feldman VSS over RFC 3526 group 14 (a
   2048-bit safe prime): t-of-n Shamir shares in GF(Q), commitments C_j = G^{a_j},
   and a share verifies iff G^{f(i)} == prod_j C_j^{i^j} mod P. Multi-node

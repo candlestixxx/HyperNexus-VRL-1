@@ -12,3 +12,5 @@ python-multipart>=0.0.9
 aiofiles>=23.2.1
 redis>=5.0.0
 fakeredis>=2.0.0  # test-only: Redis backend verification without a server
+psycopg[binary]>=3.2.0
+embedded-postgres>=18.0.0  # test-only: local Postgres for driver verification
