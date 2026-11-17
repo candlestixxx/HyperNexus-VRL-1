@@ -122,13 +122,28 @@ def create_secure_app(master_key: bytes | None = None, demo: bool = False,
                       current_epoch: int = 1, admin_key: str | None = None,
                       persistence_path: str | None = None) -> FastAPI:
     if master_key is None:
-        env_key = _os.environ.get("VRL1_MASTER_KEY", "")
-        if env_key:
-            master_key = env_key.encode()
-        elif demo:
-            master_key = _DEMO_MASTER
+        vault_addr = _os.environ.get("VRL1_VAULT_ADDR", "")
+        if vault_addr:
+            # KMS custody: the master key is fetched from Vault, never shipped.
+            from core.kms import VaultMasterKeySource
+            token = _os.environ.get("VRL1_VAULT_TOKEN", "")
+            if not token:
+                raise RuntimeError("VRL1_VAULT_TOKEN required when VRL1_VAULT_ADDR is set")
+            source = VaultMasterKeySource(
+                vault_addr, token,
+                path=_os.environ.get("VRL1_VAULT_PATH", "secret/data/vrl1"),
+                field=_os.environ.get("VRL1_VAULT_KEY_FIELD", "master_key"))
+            master_key = source.get_master_key()
         else:
-            raise RuntimeError("VRL1_MASTER_KEY env (>=32 bytes) required, or demo=True")
+            env_key = _os.environ.get("VRL1_MASTER_KEY", "")
+            if env_key:
+                master_key = env_key.encode()
+            elif demo:
+                master_key = _DEMO_MASTER
+            else:
+                raise RuntimeError(
+                    "VRL1_MASTER_KEY env (>=32 bytes) or VRL1_VAULT_ADDR (KMS custody) "
+                    "required, or demo=True")
     # Admin key gates enrollment. Resolution: arg > env > demo-generated.
     import hmac as _hmac
     import secrets as _secrets

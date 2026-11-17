@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2026-11-17
+
+### Added
+- **KMS master-key custody (Vault)** (`core/kms.py`): `MasterKeySource` interface + `VaultMasterKeySource` (reads the master key from Vault KV v2). `create_secure_app` now prefers Vault (`VRL1_VAULT_ADDR` + `VRL1_VAULT_TOKEN`) over the env/demo fallback, so production key material can live in a KMS instead of config. Verified against a local Vault dev server.
+- 3 new tests (86 total): key fetch, bad-token rejection, and end-to-end secure-app bootstrapping from Vault.
+
 ## [1.11.0] - 2026-11-17
 
 ### Added

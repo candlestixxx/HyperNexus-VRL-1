@@ -82,6 +82,10 @@ uvicorn api.gateway:create_secure_app --factory --port 8001
 | :--- | :--- | :--- |
 | `VRL1_MASTER_KEY` | yes (≥32 bytes) | Master key for tenant/proof/record/signature derivation; refused if missing unless `demo=True` |
 | `VRL1_ADMIN_KEY` | yes | Gates `/secure/enroll`; refused if missing unless `demo=True` (which auto-generates and prints it) |
+| `VRL1_VAULT_ADDR` | optional | When set, the master key is fetched from Vault KV v2 (KMS custody) instead of `VRL1_MASTER_KEY` |
+| `VRL1_VAULT_TOKEN` | with `VRL1_VAULT_ADDR` | Vault token used to read the master key |
+| `VRL1_VAULT_PATH` | optional | KV v2 path (default `secret/data/vrl1`) |
+| `VRL1_VAULT_KEY_FIELD` | optional | KV field holding the base64 master key (default `master_key`) |
 
 Vault persistence is opt-in via `create_secure_app(persistence_path=...)`: state is written atomically and its transparency root is HMAC-signed, so a rolled-back or forged state file is refused on the next load. In demo mode the auto-generated admin key is printed to stderr and exposed at `/secure/demo-admin-key` only.
 

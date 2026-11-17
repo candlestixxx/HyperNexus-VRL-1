@@ -113,6 +113,8 @@ def test_vault_persistence_survives_reload_and_rejects_tamper(tmp_path):
 
 def test_secure_mode_refuses_without_master_key(monkeypatch):
     monkeypatch.delenv("VRL1_MASTER_KEY", raising=False)
+    monkeypatch.delenv("VRL1_VAULT_ADDR", raising=False)
+    monkeypatch.delenv("VRL1_VAULT_TOKEN", raising=False)
     with pytest.raises(RuntimeError):
         create_secure_app()
 

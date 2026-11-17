@@ -63,4 +63,7 @@
   `proof_key` is cached because it feeds every gateway `verify_request`. Rust
   functions release the GIL (`Python::detach`); at ~2 µs/op the win is ~2×
   single-thread, and parallel scaling is small/noisy (thread overhead dominates).
+- KMS master-key custody: `create_secure_app` prefers Vault (`core/kms.py`
+  `VaultMasterKeySource`) via `VRL1_VAULT_ADDR` + `VRL1_VAULT_TOKEN`, then falls
+  back to env/demo. A Vault-backed master key never appears in shipped config.
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

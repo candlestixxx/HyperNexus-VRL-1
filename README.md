@@ -1,8 +1,8 @@
 # HyperNexus VRL-1: Universal Multi-Tenant API Gateway
 
-[![Version](https://img.shields.io/badge/version-1.11.0-blue.svg)](VERSION.md)
+[![Version](https://img.shields.io/badge/version-1.12.0-blue.svg)](VERSION.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-83%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-86%20passed-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
 **HyperNexus VRL-1 (Virtual Routing Layer 1)** is an intelligent, zero-trust, multi-tenant API gateway and dynamic control plane engineered for **United Beats LLC** and enterprise integration ecosystems.
@@ -77,6 +77,7 @@ The `core/` + `api/` packages implement the three tree-ring proofs as executable
 - [core/stores.py](core/stores.py) — shared-store interfaces (`NonceStore` / `CapabilityUsageStore`) + SQLite/WAL backends
 - [core/stores_redis.py](core/stores_redis.py) — Redis shared-store drivers (atomic nonce/usage), verified via `fakeredis`
 - [core/stores_postgres.py](core/stores_postgres.py) — PostgreSQL shared-store drivers (atomic nonce/usage), verified via `embedded-postgres`
+- [core/kms.py](core/kms.py) — KMS master-key custody (`VaultMasterKeySource`), verified against a local Vault
 - [core/threshold.py](core/threshold.py) — Feldman VSS threshold credential release (t-of-n, share verification, reconstruction)
 - [rust/vrl1_core](rust/vrl1_core) — optional PyO3 Rust core (`derive_coordinate`/`make_proof`/`spatialize_key`), auto-detected with a pure-Python fallback
 - Math, stated honestly: [docs/MATHEMATICS.md](docs/MATHEMATICS.md) · Pitch narrative: [MANIFESTO.md](MANIFESTO.md)
@@ -112,7 +113,7 @@ Run the automated test suite:
 ```bash
 python -m pytest -v
 ```
-All 83 tests cover cryptographic envelope roundtrips, radial coordinate derivation, dynamic routing, database audit pooling, MCP JSON-RPC compliance, proof-of-possession, replay resistance, transparency proofs, persistence/tamper detection, capability-token caveats, circuit-breaker fail-closed behavior, shared-store backends (SQLite + Redis + Postgres), threshold secret sharing, and Rust-core parity.
+All 86 tests cover cryptographic envelope roundtrips, radial coordinate derivation, dynamic routing, database audit pooling, MCP JSON-RPC compliance, proof-of-possession, replay resistance, transparency proofs, persistence/tamper detection, capability-token caveats, circuit-breaker fail-closed behavior, shared-store backends (SQLite + Redis + Postgres), KMS custody (Vault), threshold secret sharing, and Rust-core parity.
 
 ---
 

@@ -16,7 +16,7 @@
 ## Milestone 4: Enterprise Tier (v1.4.x)
 - [x] Threshold (Feldman VSS) credential release; no whole secrets on one node
 - [x] Env-required secrets, no shipped defaults (secure mode refuses demo keys unless `demo=True`; `VRL1_MASTER_KEY` + `VRL1_ADMIN_KEY` required)
-- [ ] KMS/HSM master-key custody (external service integration)
+- [x] KMS/HSM master-key custody (Vault KV v2 via `core/kms.py`; verified against a local Vault dev server)
 - [x] Signed tamper-evident vault persistence (rollback/deletion detection at rest)
 - [x] Capability-attenuated MCP agent tokens (scope/expiry/path/max-uses caveats)
 - [x] CUSUM anomaly detection + circuit breaker per shard (fail-closed brute-force defense)

@@ -12,7 +12,7 @@ single-cycle tasks below — highest priority first.
 - [x] **Postgres drivers** (`PostgresNonceStore`, `PostgresCapabilityUsageStore`) verified via `embedded-postgres`.
 
 ## Blocked / external
-- [ ] **KMS/HSM master-key custody** — external service integration; the env-required portion is done. *Blocked on infra choice.*
+- [x] **KMS/HSM master-key custody** — Vault KV v2 via `core/kms.py` (`VaultMasterKeySource`), verified against a local Vault dev server. (HSM hardware integration remains a provider choice.)
 
 ## Next (in code)
 - [x] **Threshold (Feldman VSS) credential release** — `core/threshold.py`: t-of-n Shamir shares with Feldman commitments + share verification + reconstruction, so no single node holds a whole credential. *Rationale: the last Milestone-4 code item before multi-node/BFT (Milestone 5).*

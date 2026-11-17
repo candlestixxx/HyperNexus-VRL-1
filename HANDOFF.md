@@ -1,9 +1,9 @@
 # Session Handoff — HyperNexus VRL-1
 
 ## Current state (2026-11-17)
-- Version: `VERSION.md` = **1.11.0** (single source, read via `vrl1_version.app_version()`).
+- Version: `VERSION.md` = **1.12.0** (single source, read via `vrl1_version.app_version()`).
 - Branch: `main` only; **no submodules**; remote `origin` = github.com/candlestixxx/HyperNexus-VRL-1.
-- Tests: **83 passing** (`python -m pytest -q`). Rust parity tests skip when `_vrl1_core` is not built; Redis/Postgres tests skip when their test deps are missing.
+- Tests: **86 passing** (`python -m pytest -q`). Rust/Redis/Postgres/Vault tests skip when their tooling or test deps are missing.
 - Tree is **clean**; all commits pushed through `ee59422`.
 
 ## What shipped this session (v1.4.0 → v1.9.0)
@@ -16,13 +16,14 @@
 - **v1.9.1** — Rust functions release the GIL (`Python::detach`) + `benchmarks/bench_parallel.py` (honest read: ~2× single-thread win is the reliable gain; parallel scaling is small/noisy at ~2 µs/op).
 - **v1.10.0** — Redis shared-store drivers (`core/stores_redis.py`: `RedisNonceStore`, `RedisCapabilityUsageStore`), verified via `fakeredis`.
 - **v1.11.0** — PostgreSQL shared-store drivers (`core/stores_postgres.py`: `PostgresNonceStore`, `PostgresCapabilityUsageStore`), verified via `embedded-postgres`.
+- **v1.12.0** — KMS master-key custody (`core/kms.py`: `VaultMasterKeySource`), verified against a local Vault dev server.
 
 ## Architecture in one paragraph
 `src/` = legacy production portal gateway (FastAPI, Fernet vault, router, DB pools, MCP JSON-RPC). `core/` = Tier-1 engines: `vrl1_algo.py` (integer-torus engine, proof-of-possession, AEAD, replay, cached proof/tenant keys, optional Rust), `secure_vault.py` (AEAD vault + admin gating + signed persistence + capability mint/auth + circuit breaker), `transparency.py` (Merkle log), `capability.py` (caveated tokens), `security_monitor.py` (CUSUM breaker), `stores.py` (shared-store backends), `threshold.py` (Feldman VSS), `_rust.py` (PyO3 shim). `api/gateway.py` = demo app (`create_app`) + secure app (`create_secure_app`). Entry points: `python main.py` (8000), `uvicorn api.gateway:app` (8001, demo), `uvicorn api.gateway:create_secure_app --factory` (secure mode).
 
 ## What remains and why it's ordered this way
-- **KMS/HSM master-key custody** — blocked: requires an external provider choice.
 - **Milestone 5 (research, multi-week)**: ZK ring-membership (field-native commitment), BFT multi-writer consensus, TLA+ model + independent pen test. Rust port is done for derivation (`derive_coordinate`, `make_proof`, `spatialize_key`) with GIL release; `verify_request` orchestration remains Python.
+- **HSM hardware integration** — optional provider-specific follow-on to the Vault custody path (same `MasterKeySource` interface).
 
 ## Known flags (do not "fix" silently)
 - Default master keys are hardcoded in `src/config.py` and `docker-compose.yml` for the *legacy* `src/` demo path. Secure mode refuses demo keys unless `demo=True`. Purge only on explicit owner order.
