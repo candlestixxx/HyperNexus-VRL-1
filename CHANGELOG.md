@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2026-11-17
+
+### Changed
+- **Rust core releases the GIL** around its HMAC/SHA-256 work (`Python::detach`), so concurrent Python threads can overlap on derivation/proof instead of serializing on the interpreter lock. Measured honestly: at ~2–3 µs/op the thread-coordination overhead dominates, so parallel throughput only peaks ~1.1–1.5× at 2–4 threads (where pure Python stays GIL-bound/flat) and degrades past core count. The reliable win remains the ~2× single-thread speedup from v1.9.0.
+- Added `benchmarks/bench_parallel.py` for the thread-scaling measurement.
+
 ## [1.9.0] - 2026-11-17
 
 ### Added

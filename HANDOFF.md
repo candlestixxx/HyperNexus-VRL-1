@@ -1,7 +1,7 @@
 # Session Handoff — HyperNexus VRL-1
 
 ## Current state (2026-11-17)
-- Version: `VERSION.md` = **1.9.0** (single source, read via `vrl1_version.app_version()`).
+- Version: `VERSION.md` = **1.9.1** (single source, read via `vrl1_version.app_version()`).
 - Branch: `main` only; **no submodules**; remote `origin` = github.com/candlestixxx/HyperNexus-VRL-1.
 - Tests: **75 passing** (`python -m pytest -q`). Rust-core parity tests skip automatically when `_vrl1_core` is not built (e.g. CI on Linux).
 - Tree is **clean**; all commits pushed through `ee59422`.
@@ -13,6 +13,7 @@
 - **v1.7.0** (`7dcce67`) — shared-store interfaces (`core/stores.py`) + SQLite (WAL) backends.
 - **v1.8.0** (`cf4bc28`) — Feldman VSS threshold credential release (`core/threshold.py`).
 - **v1.9.0** (`ee59422`) — Rust core (PyO3) port (`rust/vrl1_core/`) of `derive_coordinate`, `make_proof`, `spatialize_key`; `core/_rust.py` auto-detects it with a pure-Python fallback. `proof_key` is now cached.
+- **v1.9.1** — Rust functions release the GIL (`Python::detach`) + `benchmarks/bench_parallel.py` (honest read: ~2× single-thread win is the reliable gain; parallel scaling is small/noisy at ~2 µs/op).
 
 ## Architecture in one paragraph
 `src/` = legacy production portal gateway (FastAPI, Fernet vault, router, DB pools, MCP JSON-RPC). `core/` = Tier-1 engines: `vrl1_algo.py` (integer-torus engine, proof-of-possession, AEAD, replay, cached proof/tenant keys, optional Rust), `secure_vault.py` (AEAD vault + admin gating + signed persistence + capability mint/auth + circuit breaker), `transparency.py` (Merkle log), `capability.py` (caveated tokens), `security_monitor.py` (CUSUM breaker), `stores.py` (shared-store backends), `threshold.py` (Feldman VSS), `_rust.py` (PyO3 shim). `api/gateway.py` = demo app (`create_app`) + secure app (`create_secure_app`). Entry points: `python main.py` (8000), `uvicorn api.gateway:app` (8001, demo), `uvicorn api.gateway:create_secure_app --factory` (secure mode).
@@ -20,7 +21,7 @@
 ## What remains and why it's ordered this way
 - **Redis/Postgres concrete drivers** — blocked: no live service in this sandbox. `NonceStore` / `CapabilityUsageStore` interfaces are ready in `core/stores.py`.
 - **KMS/HSM master-key custody** — blocked: requires an external provider choice.
-- **Milestone 5 (research, multi-week)**: ZK ring-membership (field-native commitment), BFT multi-writer consensus, TLA+ model + independent pen test. Rust port is done for derivation; `verify_request` orchestration remains Python, and the GIL is not yet released for parallel derivation (the next Rust win).
+- **Milestone 5 (research, multi-week)**: ZK ring-membership (field-native commitment), BFT multi-writer consensus, TLA+ model + independent pen test. Rust port is done for derivation (`derive_coordinate`, `make_proof`, `spatialize_key`) with GIL release; `verify_request` orchestration remains Python.
 
 ## Known flags (do not "fix" silently)
 - Default master keys are hardcoded in `src/config.py` and `docker-compose.yml` for the *legacy* `src/` demo path. Secure mode refuses demo keys unless `demo=True`. Purge only on explicit owner order.
@@ -43,6 +44,7 @@ cd ../..
 
 python benchmarks\bench_gateway.py
 python benchmarks\bench_rust.py
+python benchmarks\bench_parallel.py
 python main.py
 # secure mode:
 #   $env:VRL1_MASTER_KEY = ...; $env:VRL1_ADMIN_KEY = ...

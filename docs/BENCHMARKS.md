@@ -20,4 +20,8 @@ Harness: [benchmarks/bench_rust.py](../benchmarks/bench_rust.py) · 20,000 ops, 
 | `make_proof` | ~4–7 | ~9–16 | ~2–2.5× |
 | `spatialize_key` (d=4) | ~1.7–2.1 | ~4.4–5.1 | ~2.5–3× |
 
-Honest reading: the Rust port roughly halves the cost of the ported crypto primitives. It does not reach the ~0.09 µs bare-dict baseline — the remaining gap is HMAC itself plus the Python↔Rust call boundary, not a table scan. The larger structural win (releasing the GIL for parallel derivation) is not yet exercised.
+Honest reading: the Rust port roughly halves the cost of the ported crypto primitives. It does not reach the ~0.09 µs bare-dict baseline — the remaining gap is HMAC itself plus the Python↔Rust call boundary, not a table scan.
+
+### Parallel derivation (GIL release, v1.9.1)
+
+The Rust functions release the GIL around the HMAC (`Python::detach`). Measured across thread counts (200k ops, dev laptop, noisy single-core timings): Rust throughput peaks ~1.1–1.5× at 2–4 threads where pure Python stays flat (GIL-bound), and both degrade past the core count from oversubscription. Honest read: at ~2–3 µs/op the thread-coordination overhead dominates, so the reliable win remains the ~2× single-thread speedup; releasing the GIL is the correct foundation but only pays off once per-op work grows or callers batch.

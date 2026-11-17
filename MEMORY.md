@@ -59,5 +59,7 @@
   distribution/orchestration is Milestone 5 (BFT).
 - The Rust core ports `derive_coordinate` / `make_proof` / `spatialize_key` (d=4);
   `core/_rust.py` imports it when built and otherwise falls back to pure Python.
-  `proof_key` is cached because it feeds every gateway `verify_request`.
+  `proof_key` is cached because it feeds every gateway `verify_request`. Rust
+  functions release the GIL (`Python::detach`); at ~2 µs/op the win is ~2×
+  single-thread, and parallel scaling is small/noisy (thread overhead dominates).
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.
