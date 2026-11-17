@@ -66,4 +66,8 @@
 - KMS master-key custody: `create_secure_app` prefers Vault (`core/kms.py`
   `VaultMasterKeySource`) via `VRL1_VAULT_ADDR` + `VRL1_VAULT_TOKEN`, then falls
   back to env/demo. A Vault-backed master key never appears in shipped config.
+- ZK ring membership is a Schnorr ring signature (AOS) over RFC 3526 group 14
+  (`core/ring_sig.py`): it proves a signer holds one of N ring public keys
+  without revealing which, using its own Fiat-Shamir/SHA-256 path. The
+  field-native Poseidon commitment for SNARK-friendliness is still a research item.
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

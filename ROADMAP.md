@@ -26,7 +26,8 @@
 
 ## Milestone 5: Research Tier (v2.x)
 - [x] Rust core port (PyO3): `derive_coordinate`, `make_proof`, `spatialize_key` (~2×); `verify_request` orchestration stays in Python
-- [ ] ZK ring-membership: field-native commitment (Poseidon-class) designed with the circuit — not a hash swap
+- [x] ZK ring-membership proof: Schnorr ring signature (AOS) over RFC 3526 group 14 (`core/ring_sig.py`)
+- [ ] Field-native Poseidon commitment designed with the circuit (SNARK-friendliness) — the "not a hash swap" refinement
 - [ ] BFT consensus for multi-writer ring state
 - [ ] TLA+ model of register/persist/reload invariants + independent penetration test
 

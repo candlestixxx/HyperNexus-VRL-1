@@ -19,4 +19,6 @@ single-cycle tasks below — highest priority first.
 
 ## Research tier (v2.x — NOT short-term; see ROADMAP Milestone 5)
 - [x] Rust core port (PyO3): `derive_coordinate` / `make_proof` / `spatialize_key` (~2× measured).
-- [ ] ZK ring-membership (field-native commitment), BFT consensus, TLA+ model.
+- [x] ZK ring-membership proof: Schnorr ring signature (AOS) over RFC 3526 group 14 (`core/ring_sig.py`).
+- [ ] Field-native Poseidon commitment designed with the circuit (SNARK-friendliness) — the "not a hash swap" refinement.
+- [ ] BFT consensus, TLA+ model.

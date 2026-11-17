@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-11-17
+
+### Added
+- **ZK ring membership** (`core/ring_sig.py`): Schnorr ring signature (AOS construction) over the RFC 3526 group — proves the signer holds one of N ring public keys without revealing which. Keeps its own Fiat-Shamir/SHA-256 path (not a hash-swap of the coordinate/proof flow). The field-native Poseidon commitment for SNARK-friendliness remains a separate research item.
+- 7 new tests (93 total): verification, anonymous signing by any member, and rejection of wrong-message / tampered / wrong-ring / non-member-forged signatures.
+
 ## [1.12.0] - 2026-11-17
 
 ### Added
