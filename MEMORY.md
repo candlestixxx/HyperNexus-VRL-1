@@ -42,4 +42,7 @@
 - Secure mode gates enrollment behind an admin key and refuses to run without a
   ≥32-byte master key (unless `demo=True`). Vault persistence signs its transparency
   root, so rollback/forgery is detected on load.
+- Capability-attenuated tokens let agents act on a tenant's behalf without the raw
+  key; caveats (scope subset, expiry, path prefix, max-use budget) are enforced at
+  dispatch. A `*` enrollment scope grants any attenuation.
 - Never log raw API keys — fingerprint prefix only. Rejected requests write nothing.

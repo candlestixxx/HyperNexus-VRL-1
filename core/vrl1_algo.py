@@ -177,6 +177,17 @@ class VRL1ZeroTrustEngine:
     def verify_root_signature(self, root_hex: str, signature: str) -> bool:
         return hmac.compare_digest(self.sign_root(root_hex), signature)
 
+    def capability_key(self) -> bytes:
+        """Master-derived key for signing/verifying capability tokens."""
+        return HKDF(algorithm=hashes.SHA256(), length=32, salt=None,
+                    info=b"vrl1-capability").derive(self._master)
+
+    def sign_capability(self, payload: bytes) -> str:
+        return hmac.new(self.capability_key(), payload, hashlib.sha256).hexdigest()
+
+    def verify_capability(self, payload: bytes, signature: str) -> bool:
+        return hmac.compare_digest(self.sign_capability(payload), signature)
+
     # -- AEAD record binding ------------------------------------------------------
     def _record_key(self, tenant_id: str) -> bytes:
         return HKDF(algorithm=hashes.SHA256(), length=32, salt=None,

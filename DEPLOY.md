@@ -85,6 +85,8 @@ uvicorn api.gateway:create_secure_app --factory --port 8001
 
 Vault persistence is opt-in via `create_secure_app(persistence_path=...)`: state is written atomically and its transparency root is HMAC-signed, so a rolled-back or forged state file is refused on the next load. In demo mode the auto-generated admin key is printed to stderr and exposed at `/secure/demo-admin-key` only.
 
+Capability-attenuated agent tokens are minted by the admin at `POST /secure/mint-token` (admin-key gated) and used by agents on the dispatch path via the `X-VRL1-Capability` header (or `Authorization: Bearer <token>`). Tokens carry scope-subset, expiry, path-prefix, and max-use caveats.
+
 ---
 
 ## 5. Verification & Testing

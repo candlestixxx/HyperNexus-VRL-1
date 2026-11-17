@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-11-17
+
+### Added
+- **Capability-attenuated agent tokens** (`core/capability.py`): admin-minted, HMAC-signed tokens caveated by a scope subset, an expiry, an optional path prefix, and an optional max-use budget. Agents dispatch with only the token (`X-VRL1-Capability` or `Authorization: Bearer`), never the raw tenant key.
+- Vault integration: `SecureRadialVault.mint_agent_token()` (mints against the latest-epoch enrollment; rejects scope escalation) and `authenticate_agent_token()` (verifies signature → expiry → path → scope → budget, then AEAD-opens the record). A `"*"` enrollment scope grants any attenuated scope.
+- Gateway: admin-gated `POST /secure/mint-token`; the dispatch path accepts capability tokens before falling back to key+proof; `/secure/ui` gains mint + capability-dispatch controls.
+- 11 new tests (55 total): roundtrip/tamper/expiry, usage ledger, scope escalation, path prefix, max-uses, gateway mint, and forged-token 403.
+
 ## [1.4.0] - 2026-11-17
 
 ### Added

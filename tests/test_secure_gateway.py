@@ -135,6 +135,49 @@ def test_demo_admin_key_endpoint_hidden_with_explicit_key():
         assert client.get("/secure/demo-admin-key").status_code == 404
 
 
+def test_mint_and_dispatch_with_capability_token():
+    seen: list = []
+    client, _app = _secure_client(seen)
+    with client:
+        enr = client.post("/secure/enroll", headers=ADMIN, json={
+            "tenant_id": "tenant_a", "target_url": "https://a.example.com",
+            "db_connection_string": "sqlite:///a.db", "scopes": ["*"]})
+        assert enr.status_code == 200
+        mint = client.post("/secure/mint-token", headers=ADMIN, json={
+            "tenant_id": "tenant_a", "scopes": ["read:leads"],
+            "exp_seconds": 3600, "path_prefix": "/mcp/dispatch/leads",
+            "max_uses": 5})
+        assert mint.status_code == 200, mint.text
+        token = mint.json()["capability_token"]
+        # Agent dispatches with only the capability token (no API key/proof).
+        r = client.post("/mcp/dispatch/leads",
+                        headers={"X-VRL1-Capability": token}, json={"x": 1})
+        assert r.status_code == 200, r.text
+        assert r.json()["tenant_id"] == "tenant_a"
+        assert seen == ["https://a.example.com/leads"]
+
+
+def test_mint_token_requires_admin_key():
+    seen: list = []
+    client, _app = _secure_client(seen)
+    with client:
+        r = client.post("/secure/mint-token", json={
+            "tenant_id": "tenant_a", "scopes": ["read:leads"]})
+        assert r.status_code == 403
+        assert seen == []
+
+
+def test_dispatch_forged_capability_token_gets_403():
+    seen: list = []
+    client, _app = _secure_client(seen)
+    with client:
+        r = client.post("/mcp/dispatch/leads",
+                        headers={"X-VRL1-Capability": "forged.token.value"},
+                        json={"x": 1})
+        assert r.status_code == 403
+        assert seen == []
+
+
 def test_transparency_inclusion_proof():
     log = MerkleLog()
     entries = [f"enroll-{i}".encode() for i in range(9)]
