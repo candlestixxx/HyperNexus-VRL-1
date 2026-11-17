@@ -1,6 +1,6 @@
 # HyperNexus VRL-1: Universal Multi-Tenant API Gateway
 
-[![Version](https://img.shields.io/badge/version-1.16.0-blue.svg)](VERSION.md)
+[![Version](https://img.shields.io/badge/version-1.17.0-blue.svg)](VERSION.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-100%20passed-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)

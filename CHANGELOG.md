@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2026-11-17
+
+### Added
+- **HTTP gateway benchmark harness** (`benchmarks/bench_http.py`): end-to-end secure-gateway dispatch load test (in-process ASGI + mock upstream) measuring throughput and p50/p95 latency under concurrency, comparing the Rust core vs the pure-Python fallback. Measured honestly: ~350–435 req/s with no reliable Rust-vs-Python difference at the full-request level (crypto is a few µs of a ~2 ms request; run-to-run noise exceeds the gap). The Kong/Nginx+Redis baseline remains the outstanding Phase-1 crucible.
+
 ## [1.16.0] - 2026-11-17
 
 ### Added

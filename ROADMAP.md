@@ -32,5 +32,9 @@
 - [x] TLA+ model of register/persist/reload invariants (model-checked with TLC)
 - [ ] Independent penetration test (process, not code)
 
+## Benchmark crucible
+- [x] HTTP gateway load harness (`benchmarks/bench_http.py`; Rust-vs-Python measured)
+- [ ] Kong/Nginx+Redis baseline comparison (external baseline still owed)
+
 ## Explicitly not promised
 Passing a named audit (SOC 2, Common Criteria) is a process outcome, not a code feature. Open-source adoption and published benchmarks precede any platform licensing conversation.

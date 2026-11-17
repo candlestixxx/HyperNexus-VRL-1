@@ -25,3 +25,14 @@ Honest reading: the Rust port roughly halves the cost of the ported crypto primi
 ### Parallel derivation (GIL release, v1.9.1)
 
 The Rust functions release the GIL around the HMAC (`Python::detach`). Measured across thread counts (200k ops, dev laptop, noisy single-core timings): Rust throughput peaks ~1.1–1.5× at 2–4 threads where pure Python stays flat (GIL-bound), and both degrade past the core count from oversubscription. Honest read: at ~2–3 µs/op the thread-coordination overhead dominates, so the reliable win remains the ~2× single-thread speedup; releasing the GIL is the correct foundation but only pays off once per-op work grows or callers batch.
+
+## HTTP gateway (v1.17.0)
+
+Harness: [benchmarks/bench_http.py](../benchmarks/bench_http.py) · secure-gateway dispatch, in-process ASGI + mock upstream, 2,000 requests, concurrency 8, dev laptop (noisy single-core timings).
+
+| Mode | Throughput | p50 | p95 |
+|---|---|---|---|
+| Rust core | ~350–435 req/s | ~1.9–2.4 ms | ~4.4–5.7 ms |
+| Pure Python | ~410–421 req/s | ~2.0–2.1 ms | ~4.4–4.9 ms |
+
+Honest reading: at the full-request level there is no reliable Rust-vs-Python difference — run-to-run variance exceeds the gap. That is expected: the ported crypto is a few microseconds of a ~2 ms request dominated by ASGI/JSON/upstream/AEAD/nonce/breaker overhead. The Rust win is real only at the primitive level (2×, above). The Kong/Nginx+Redis baseline comparison remains the outstanding Phase-1 crucible before any external throughput claim.
