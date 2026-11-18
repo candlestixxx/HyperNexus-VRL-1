@@ -108,10 +108,27 @@ When an AI agent needs Tenant A's database, it never sends `"excel_legacy_key_77
 
 ---
 
+## Build & Run
+
+```bash
+# Rust GAP primitives (optional acceleration; pure-Python fallback included)
+pip install maturin
+cd rust/vrl4_gap
+maturin build --release
+pip install --force-reinstall target/wheels/vrl4_gap-*.whl
+cd ../..
+
+# Test the full GAP handshake (physics + light + math)
+python -m pytest tests/test_vrl4_gap.py -q
+
+# Local loopback demo (fingerprint -> enroll -> RTT challenge -> verify)
+python -m core.vrl4_client
+```
+
 ## Honest Engineering Status
 
-- **Implemented & tested** (VRL-1 core): exact integer-torus derivation, proof-of-possession, AEAD records, replay ledger, Merkle transparency log, capability tokens, CUSUM circuit breaker, shared stores, threshold VSS, KMS custody, and the Rust core — **100 passing tests**.
-- **VRL-4 (GAP)**: the architecture, the three layers, and the four hardening upgrades are **specification**; the prototype `GeometricAuthenticator` is the baseline reference. The physics (PUF extraction) and light (RTT distance) layers are the next build phases.
+- **Implemented & tested** (VRL-1 core): exact integer-torus derivation, proof-of-possession, AEAD records, replay ledger, Merkle transparency log, capability tokens, CUSUM circuit breaker, shared stores, threshold VSS, KMS custody, Rust core, and TLA+ model — **109 passing tests** (VRL-1 + VRL-4).
+- **VRL-4 (GAP) primitives — now implemented**: Rust crate `rust/vrl4_gap/` (fuzzy extractor, Kalman filter, WGS 84 geodesic, RTT challenge sign/verify) + `core/vrl4_gap.py` (`GapAuthenticator` wiring physics → light → math) + `core/vrl4_client.py` (hardware fingerprint + loopback handshake). The fuzzy extractor uses a repetition code (swap to BCH/Reed-Solomon for production); the hardware "PUF" is a deterministic fingerprint (a true silicon PUF remains a hardware step).
 
 ---
 
