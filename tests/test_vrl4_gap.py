@@ -118,3 +118,51 @@ def test_gap_handshake_rejects_wrong_device_reading():
     proof = gap.prove(b"\x99" * (32 * 3), "1234", challenge)
     with pytest.raises(PermissionError):
         gap.verify(proof, device_lat=40.7128, device_lon=-74.0060, rtt_ms=5.0)
+
+
+# -- Schnorr (zero-knowledge) handshake --------------------------------------
+def _schnorr_authenticator():
+    from core.vrl4_gap import SchnorrGapAuthenticator
+    engine = VRL1ZeroTrustEngine(MASTER)
+    vault = SecureRadialVault(engine)
+    vault.register_tenant("tenant_a", Ring(0, 1 << 64))
+    return SchnorrGapAuthenticator(engine, vault, "tenant_a")
+
+
+def test_schnorr_gap_handshake_access_granted():
+    gap = _schnorr_authenticator()
+    reading = b"\x55" * (32 * 3)
+    gap.enroll_device(reading, "1234", "https://a.example.com", "sqlite:///a.db")
+    challenge = gap.issue_challenge()
+    noisy = _flip_bits(reading, [b * 3 for b in range(32 * 8)])
+    proof = gap.prove(noisy, "1234", challenge)
+    out = gap.verify(proof, device_lat=40.7128, device_lon=-74.0060, rtt_ms=5.0)
+    assert out["target_url"] == "https://a.example.com"
+
+
+def test_schnorr_gap_handshake_rejects_forged_signature():
+    from core.vrl4_gap import GapProof
+    gap = _schnorr_authenticator()
+    reading = b"\x66" * (32 * 3)
+    gap.enroll_device(reading, "1234", "https://a.example.com", "sqlite:///a.db")
+    challenge = gap.issue_challenge()
+    proof = GapProof("tenant_a", "", challenge.nonce, b"", (1, 2))
+    with pytest.raises(PermissionError):
+        gap.verify(proof, device_lat=40.7128, device_lon=-74.0060, rtt_ms=5.0)
+
+
+def test_gap_handshake_rs_codec():
+    from core.vrl4_gap import GapAuthenticator
+    engine = VRL1ZeroTrustEngine(MASTER)
+    vault = SecureRadialVault(engine)
+    vault.register_tenant("tenant_a", Ring(0, 1 << 64))
+    gap = GapAuthenticator(engine, vault, "tenant_a", codec="rs", nsym=16)
+    reading = b"\x77" * 48  # key_len(32) + nsym(16)
+    gap.enroll_device(reading, "1234", "https://a.example.com", "sqlite:///a.db")
+    challenge = gap.issue_challenge()
+    noisy = bytearray(reading)
+    for p in (3, 17, 40):  # byte errors within RS correction radius
+        noisy[p] ^= 0xFF
+    proof = gap.prove(bytes(noisy), "1234", challenge)
+    out = gap.verify(proof, device_lat=40.7128, device_lon=-74.0060, rtt_ms=5.0)
+    assert out["target_url"] == "https://a.example.com"

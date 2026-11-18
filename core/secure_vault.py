@@ -290,3 +290,18 @@ class SecureRadialVault:
             if sealed is not None and sealed.epoch > best_epoch:
                 best_shards, best_epoch = shards, sealed.epoch
         return best_shards
+
+    def resolve_by_key(self, tenant_id: str, api_key: str, epoch: int) -> dict:
+        """Resolve a routing record by an already-authenticated key string.
+
+        Does NOT verify proof-of-possession — callers must authenticate the
+        presenter out-of-band (e.g. Schnorr). Used by VRL-4 GAP, where the
+        public key is the lookup string and the Schnorr signature is the auth."""
+        _, shards = self.engine.derive_coordinate(tenant_id, api_key, epoch)
+        with self._lock:
+            sealed = self._by_shard.get(shards)
+        if sealed is None or sealed.tenant_id != tenant_id:
+            raise PermissionError("unmapped shard")
+        record = self.engine.open_record(tenant_id, sealed.radius, shards,
+                                         sealed.epoch, sealed.scopes, sealed.blob)
+        return {"tenant_id": tenant_id, "scopes": sealed.scopes, **record}

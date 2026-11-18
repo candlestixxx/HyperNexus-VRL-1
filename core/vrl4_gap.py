@@ -32,6 +32,9 @@ try:
 except Exception:  # pragma: no cover - import failure on platforms without the wheel
     RUST_GAP = False
 
+from core import schnorr
+from core.reed_solomon import ReedSolomonError, rs_correct_msg, rs_encode_msg
+
 _EARTH_RADIUS_KM = 6371.0
 _KEY_LEN = 32  # 256-bit device key
 
@@ -108,6 +111,23 @@ def fuzzy_reproduce(reading: bytes, helper: bytes, key_len: int = _KEY_LEN, repe
     if RUST_GAP:
         return _rg_fuzzy_reproduce(reading, helper, key_len, repeat)
     return _py_fuzzy_reproduce(reading, helper, key_len, repeat)
+
+
+def fuzzy_generate_rs(reading: bytes, key_len: int = _KEY_LEN, nsym: int = 16) -> tuple[bytes, bytes]:
+    """Production-grade fuzzy extractor: Reed-Solomon inner code.
+
+    Corrects up to nsym/2 byte errors (unknown positions) vs the repetition
+    code's 1-bit-per-block. `reading` must be >= key_len + nsym bytes."""
+    key = secrets.token_bytes(key_len)
+    codeword = bytes(rs_encode_msg(key, nsym))
+    helper = bytes(c ^ r for c, r in zip(codeword, reading))
+    return key, helper
+
+
+def fuzzy_reproduce_rs(reading: bytes, helper: bytes, key_len: int = _KEY_LEN,
+                       nsym: int = 16) -> bytes:
+    codeword = bytes(h ^ r for h, r in zip(helper, reading))
+    return rs_correct_msg(codeword, nsym)
 
 
 def sign_challenge(key: bytes, nonce: bytes, client_nonce: bytes, payload: bytes) -> bytes:
@@ -192,7 +212,7 @@ class GapProof:
     device_id: str
     nonce: bytes
     client_nonce: bytes
-    signature: bytes
+    signature: bytes | tuple[int, int]  # HMAC bytes (hmac) or (e, s) (schnorr)
 
 
 def _mix(reading: bytes, pin: str) -> bytes:
@@ -209,13 +229,16 @@ class GapAuthenticator:
     SPEED_KM_PER_MS = 200.0  # light in fiber (~2/3 c)
 
     def __init__(self, engine, vault, tenant_id: str, *, epoch: int = 1,
-                 repeat: int = 3, home_lat: float = 40.7128,
-                 home_lon: float = -74.0060, tolerance_sigma: float = 5.0) -> None:
+                 repeat: int = 3, codec: str = "repetition", nsym: int = 16,
+                 home_lat: float = 40.7128, home_lon: float = -74.0060,
+                 tolerance_sigma: float = 5.0) -> None:
         self.engine = engine
         self.vault = vault
         self.tenant_id = tenant_id
         self.epoch = epoch
         self.repeat = repeat
+        self.codec = codec
+        self.nsym = nsym
         self.home_lat = home_lat
         self.home_lon = home_lon
         self.tolerance_sigma = tolerance_sigma
@@ -223,13 +246,27 @@ class GapAuthenticator:
         self.device_key: str | None = None
         self.helper: bytes | None = None
 
+    def _reading_len(self) -> int:
+        return _KEY_LEN * self.repeat if self.codec == "repetition" else _KEY_LEN + self.nsym
+
+    def _extract_key(self, reading: bytes, pin: str) -> tuple[bytes, bytes]:
+        material = _mix(reading, pin)
+        if self.codec == "rs":
+            return fuzzy_generate_rs(material, _KEY_LEN, self.nsym)
+        return fuzzy_generate(material, _KEY_LEN, self.repeat)
+
+    def _reproduce_key(self, reading: bytes, pin: str) -> bytes:
+        material = _mix(reading, pin)
+        if self.codec == "rs":
+            return fuzzy_reproduce_rs(material, self.helper, _KEY_LEN, self.nsym)
+        return fuzzy_reproduce(material, self.helper, _KEY_LEN, self.repeat)
+
     def enroll_device(self, reading: bytes, pin: str, target_url: str,
                       db_connection_string: str) -> dict:
         """Enroll: fuzzy-extract a stable key and register it in the VRL-1 vault."""
-        if len(reading) != _KEY_LEN * self.repeat:
-            raise ValueError(f"reading must be exactly {_KEY_LEN * self.repeat} bytes")
-        material = _mix(reading, pin)
-        key, helper = fuzzy_generate(material, _KEY_LEN, self.repeat)
+        if len(reading) != self._reading_len():
+            raise ValueError(f"reading must be exactly {self._reading_len()} bytes")
+        key, helper = self._extract_key(reading, pin)
         self.device_key = key.hex()
         self.helper = helper
         info = self.vault.enroll_key(self.tenant_id, self.device_key, self.epoch,
@@ -243,8 +280,7 @@ class GapAuthenticator:
         """Prove: reproduce the key from a (possibly noisy) reading, sign the challenge."""
         if self.helper is None:
             raise RuntimeError("device not enrolled")
-        material = _mix(reading, pin)
-        key = fuzzy_reproduce(material, self.helper, _KEY_LEN, self.repeat)
+        key = self._reproduce_key(reading, pin)
         client_nonce = os.urandom(16)
         sig = sign_challenge(key, challenge.nonce, client_nonce, b"VRL4-GAP")
         device_id = hashlib.sha256(key).hexdigest()[:16]
@@ -274,3 +310,56 @@ class GapAuthenticator:
                                        epoch=self.epoch, current_epoch=self.epoch,
                                        nonce=nonce, ts=ts, method="POST", path="/gap/access",
                                        body=b"", proof=vproof, now=float(ts))
+
+
+class SchnorrGapAuthenticator(GapAuthenticator):
+    """Passwordless variant: the device proves possession in zero-knowledge.
+
+    The fuzzy-extracted seed derives a Schnorr keypair (x, Y = G^x). Only Y is
+    registered in the vault; the secret x never leaves the device. `prove`
+    signs the challenge with x (Schnorr), and `verify` checks the signature
+    against Y, then resolves the routing record by the public key."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.public: int | None = None
+        self.secret: int | None = None
+
+    def enroll_device(self, reading: bytes, pin: str, target_url: str,
+                      db_connection_string: str) -> dict:
+        if len(reading) != self._reading_len():
+            raise ValueError(f"reading must be exactly {self._reading_len()} bytes")
+        key, helper = self._extract_key(reading, pin)
+        self.helper = helper
+        self.secret = schnorr.secret_from_seed(key)
+        self.public = schnorr.public_key(self.secret)
+        y_str = str(self.public)
+        info = self.vault.enroll_key(self.tenant_id, y_str, self.epoch,
+                                     target_url, db_connection_string, scopes=["*"])
+        return {"public_key": y_str, "helper": helper.hex(), **info}
+
+    def prove(self, reading: bytes, pin: str, challenge: GapChallenge) -> GapProof:
+        if self.helper is None:
+            raise RuntimeError("device not enrolled")
+        key = self._reproduce_key(reading, pin)
+        x = schnorr.secret_from_seed(key)
+        e, s = schnorr.sign(x, challenge.nonce)
+        return GapProof(self.tenant_id, "", challenge.nonce, b"", (e, s))
+
+    def verify(self, proof: GapProof, *, device_lat: float, device_lon: float,
+               rtt_ms: float) -> dict:
+        # 1. Physics: zero-knowledge proof of possession (secret never sent).
+        if not isinstance(proof.signature, tuple):
+            raise PermissionError("zk proof failed: malformed signature")
+        e, s = proof.signature
+        if not schnorr.verify(self.public, proof.nonce, e, s):
+            raise PermissionError("zk proof failed: bad Schnorr signature")
+        # 2. Light: Kalman latency sphere + geodesic physical bound.
+        self.kalman.update(rtt_ms)
+        if self.kalman.is_anomalous(rtt_ms, self.tolerance_sigma):
+            raise PermissionError("light check failed: latency anomaly")
+        if not is_within_radius(self.home_lat, self.home_lon, device_lat, device_lon,
+                                rtt_ms, self.SPEED_KM_PER_MS):
+            raise PermissionError("light check failed: distance bound")
+        # 3. Math: resolve the record by public key (no secret transmitted).
+        return self.vault.resolve_by_key(self.tenant_id, str(self.public), self.epoch)

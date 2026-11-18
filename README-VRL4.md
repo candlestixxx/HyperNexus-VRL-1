@@ -127,8 +127,13 @@ python -m core.vrl4_client
 
 ## Honest Engineering Status
 
-- **Implemented & tested** (VRL-1 core): exact integer-torus derivation, proof-of-possession, AEAD records, replay ledger, Merkle transparency log, capability tokens, CUSUM circuit breaker, shared stores, threshold VSS, KMS custody, Rust core, and TLA+ model — **109 passing tests** (VRL-1 + VRL-4).
-- **VRL-4 (GAP) primitives — now implemented**: Rust crate `rust/vrl4_gap/` (fuzzy extractor, Kalman filter, WGS 84 geodesic, RTT challenge sign/verify) + `core/vrl4_gap.py` (`GapAuthenticator` wiring physics → light → math) + `core/vrl4_client.py` (hardware fingerprint + loopback handshake). The fuzzy extractor uses a repetition code (swap to BCH/Reed-Solomon for production); the hardware "PUF" is a deterministic fingerprint (a true silicon PUF remains a hardware step).
+- **Implemented & tested** (VRL-1 core): exact integer-torus derivation, proof-of-possession, AEAD records, replay ledger, Merkle transparency log, capability tokens, CUSUM circuit breaker, shared stores, threshold VSS, KMS custody, Rust core, and TLA+ model — **122 passing tests** (VRL-1 + VRL-4).
+- **VRL-4 (GAP) — implemented, three layers + the four upgrades**:
+  - **Physics** — fuzzy extractor with two codecs: repetition (Rust) and Reed-Solomon over GF(256) (`core/reed_solomon.py`, production-grade byte-error correction) → hardware-bound device key.
+  - **Zero-knowledge** — Schnorr proof-of-possession over RFC 3526 group 14 (`core/schnorr.py`); the device secret never leaves the device (`SchnorrGapAuthenticator`).
+  - **Light** — RTT challenge over a real socket (`core/vrl4_net.py`) + Kalman latency filter + WGS 84 geodesic bound.
+  - **Math** — VRL-1 exact integer-torus ring check via `resolve_by_key`.
+  - The hardware "PUF" is a deterministic device fingerprint (`core/vrl4_client.py`); a true silicon PUF remains a hardware step.
 
 ---
 
