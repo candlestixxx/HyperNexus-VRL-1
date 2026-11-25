@@ -27,6 +27,16 @@ from src.db.pool_manager import db_pool_manager
 from src.mcp.hooks import mcp_bridge
 from src.telemetry import telemetry_tracker
 
+# Loudly flag the shipped demo key: the legacy `src/` portal is for local
+# exploration only. Production must use `serve.py` (secure mode) with a real
+# KMS/env master key.
+if settings.VAULT_MASTER_KEY == "hyp-vrl1-radial-master-key-32bytes-secret!":
+    import warnings as _warnings
+    _warnings.warn(
+        "HyperNexus `src/` portal is running with the SHIPPED DEMO MASTER KEY. "
+        "This is NOT secure; use `python serve.py` (secure mode) for anything real.",
+        stacklevel=2)
+
 # Instantiate FastAPI application
 app = FastAPI(
     title=settings.APP_NAME,
