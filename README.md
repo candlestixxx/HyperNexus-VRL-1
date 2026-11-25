@@ -133,7 +133,7 @@ python -m core.vrl4_client
   - **Zero-knowledge** — Schnorr proof-of-possession over RFC 3526 group 14 (`core/schnorr.py`); the device secret never leaves the device (`SchnorrGapAuthenticator`).
   - **Light** — RTT challenge over a real socket (`core/vrl4_net.py`) + Kalman latency filter + WGS 84 geodesic bound.
   - **Math** — VRL-1 exact integer-torus ring check via `resolve_by_key`.
-  - The hardware "PUF" is a deterministic device fingerprint (`core/vrl4_client.py`); a true silicon PUF remains a hardware step.
+  - The hardware "PUF" is a deterministic machine fingerprint, now with **TPM detection** (`core/vrl4_client.py::detect_tpm` / `hardware_root_of_trust`): the seed is bound to the TPM presence when one is present (tier `tpm`), else falls back to `fingerprint`. Full TPM 2.0 attestation (PCR quote / EK) is the production tier and requires a TSS stack.
 
 ---
 

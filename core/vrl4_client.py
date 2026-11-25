@@ -20,8 +20,39 @@ import uuid
 READING_LEN = 96  # 32-byte key * 3 (repetition factor)
 
 
-def hardware_reading(length: int = READING_LEN) -> bytes:
-    """Deterministic, stable device fingerprint (prototype PUF substitute)."""
+def detect_tpm() -> dict:
+    """Detect a Trusted Platform Module (non-admin). Returns {present, version}."""
+    import subprocess
+    if platform.system() != "Windows":
+        present = os.path.exists("/dev/tpm0") or os.path.exists("/dev/tpmrm0")
+        return {"present": present, "version": "unknown" if present else None}
+    try:
+        out = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-Command",
+             "(Get-PnpDevice -Class SecurityDevices -ErrorAction SilentlyContinue "
+             "| Where-Object {$_.FriendlyName -match 'TPM|Platform Module'} "
+             "| Select-Object -First 1 -ExpandProperty FriendlyName)"],
+            capture_output=True, text=True, timeout=15)
+        name = (out.stdout or "").strip()
+        if name:
+            version = "2.0" if "2.0" in name else ("1.2" if "1.2" in name else "unknown")
+            return {"present": True, "version": version}
+    except Exception:
+        pass
+    return {"present": False, "version": None}
+
+
+def hardware_root_of_trust(length: int = READING_LEN) -> tuple[bytes, str]:
+    """Best-available hardware root of trust. Returns (seed, tier).
+
+    Tiers (honest):
+      - "tpm"          — a TPM is present and folded into the machine binding.
+                         Full attestation (PCR quote / EK) needs TPM 2.0 + a
+                         TSS stack (tpm2-tools / tpm2-pytss) and is the
+                         production upgrade.
+      - "fingerprint"  — deterministic machine fingerprint (prototype fallback).
+    """
+    tpm = detect_tpm()
     parts = [
         platform.node(),
         platform.machine(),
@@ -30,9 +61,17 @@ def hardware_reading(length: int = READING_LEN) -> bytes:
         str(uuid.getnode()),           # MAC address
         platform.system(),
         platform.version() or "",
+        f"tpm={tpm['present']}:{tpm['version']}",
     ]
     h = hashlib.sha256("|".join(parts).encode()).digest()
-    return (h * (length // len(h) + 1))[:length]
+    seed = (h * (length // len(h) + 1))[:length]
+    tier = "tpm" if tpm["present"] else "fingerprint"
+    return seed, tier
+
+
+def hardware_reading(length: int = READING_LEN) -> bytes:
+    """Deterministic, stable device fingerprint (prototype PUF substitute)."""
+    return hardware_root_of_trust(length)[0]
 
 
 def run_demo(pin: str = "1234") -> None:
@@ -40,8 +79,9 @@ def run_demo(pin: str = "1234") -> None:
     from core.vrl1_algo import Ring, VRL1ZeroTrustEngine
     from core.vrl4_gap import GapAuthenticator
 
-    reading = hardware_reading()
+    reading, tier = hardware_root_of_trust()
     print(f"[VRL-4 GAP] device reading ({len(reading)} bytes): {reading[:16].hex()}...")
+    print(f"[VRL-4 GAP] root of trust: {tier}")
 
     engine = VRL1ZeroTrustEngine(b"demo-master-key-32-bytes-minimum!!")
     vault = SecureRadialVault(engine)
