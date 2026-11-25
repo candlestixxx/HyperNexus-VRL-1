@@ -54,3 +54,4 @@ tools/tla2tools.jar
 
 # TLC model-checker artifacts
 spec/states/
+certs/
