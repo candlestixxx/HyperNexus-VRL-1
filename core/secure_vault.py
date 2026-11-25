@@ -290,3 +290,41 @@ class SecureRadialVault:
             if sealed is not None and sealed.epoch > best_epoch:
                 best_shards, best_epoch = shards, sealed.epoch
         return best_shards
+
+    def generate_in_ring_key(self, tenant_id: str, epoch: int = 1,
+                             max_tries: int = 10_000) -> str:
+        """Rejection-sample a key that derives in-ring, WITHOUT enrolling."""
+        ring = self._rings[tenant_id]
+        for _ in range(max_tries):
+            key = self.engine.generate_api_key()
+            radius, _ = self.engine.derive_coordinate(tenant_id, key, epoch)
+            if ring.contains(radius):
+                return key
+        raise RuntimeError("no in-ring key found; ring too narrow")
+
+    def apply_op(self, op: dict) -> None:
+        """Apply a consensus-committed operation to this vault replica."""
+        action = op["action"]
+        if action == "register_tenant":
+            self.register_tenant(op["tenant_id"], Ring(op["lo"], op["hi"]))
+        elif action == "enroll":
+            self.enroll_key(op["tenant_id"], op["api_key"], op["epoch"],
+                            op["target_url"], op["db_connection_string"],
+                            op.get("scopes", ["*"]))
+        else:
+            raise ValueError(f"unknown op action {action!r}")
+
+    def resolve_by_key(self, tenant_id: str, api_key: str, epoch: int) -> dict:
+        """Resolve a routing record by an already-authenticated key string.
+
+        Does NOT verify proof-of-possession — callers must authenticate the
+        presenter out-of-band (e.g. Schnorr). Used by VRL-4 GAP, where the
+        public key is the lookup string and the Schnorr signature is the auth."""
+        _, shards = self.engine.derive_coordinate(tenant_id, api_key, epoch)
+        with self._lock:
+            sealed = self._by_shard.get(shards)
+        if sealed is None or sealed.tenant_id != tenant_id:
+            raise PermissionError("unmapped shard")
+        record = self.engine.open_record(tenant_id, sealed.radius, shards,
+                                         sealed.epoch, sealed.scopes, sealed.blob)
+        return {"tenant_id": tenant_id, "scopes": sealed.scopes, **record}

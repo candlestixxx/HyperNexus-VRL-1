@@ -169,6 +169,10 @@ class Replica:
             # Drop the committed request from the retained (re-propose) buffer.
             self.retained = {k: v for k, v in self.retained.items()
                              if k[1] != d}
+            self._on_commit(seq, self.log[seq])
+
+    def _on_commit(self, seq: int, op: bytes) -> None:
+        """Hook called once when a request is committed. Override in subclasses."""
 
     # -- view change (liveness) ----------------------------------------------
     def start_view_change(self) -> None:
