@@ -191,6 +191,35 @@ def test_transparency_inclusion_proof():
     assert not MerkleLog.verify_inclusion(b"forged", log.inclusion_proof(0), root)
 
 
+def test_epoch_rotation_phases_out_old_keys():
+    seen: list = []
+    client, app = _secure_client(seen)
+    with client:
+        enr = client.post("/secure/enroll", headers=ADMIN, json={
+            "tenant_id": "tenant_a", "target_url": "https://a.example.com",
+            "db_connection_string": "sqlite:///a.db", "scopes": ["*"]})
+        assert enr.status_code == 200
+        key = enr.json()["api_key"]
+        assert enr.json()["epoch"] == 1
+        # epoch 1 works
+        assert _dispatch(client, app.state.engine, "tenant_a", key).status_code == 200
+        # rotate -> epoch 2
+        r = client.post("/secure/rotate", headers=ADMIN)
+        assert r.status_code == 200 and r.json()["current_epoch"] == 2
+        # old key (epoch 1) still valid during the dual-read window
+        assert _dispatch(client, app.state.engine, "tenant_a", key, nonce="n-2").status_code == 200
+        # rotate -> epoch 3
+        client.post("/secure/rotate", headers=ADMIN)
+        # old key (epoch 1) is now dropped
+        assert _dispatch(client, app.state.engine, "tenant_a", key, nonce="n-3").status_code == 403
+
+
+def test_rotate_requires_admin_key():
+    client, _app = _secure_client([])
+    with client:
+        assert client.post("/secure/rotate").status_code == 403
+
+
 def test_invariant_fuzz_cross_tenant_never_authenticates():
     """Generated key for tenant A never authenticates as tenant B, and
     tampered proofs always fail (stdlib-random property test)."""

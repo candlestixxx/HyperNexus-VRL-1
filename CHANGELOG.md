@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] - 2026-11-17
+
+### Added
+- **Epoch key rotation** (`POST /secure/rotate`, admin-gated): advances the gateway epoch so keys older than the previous epoch phase out via the existing dual-read window; fresh keys are enrolled at the new epoch through `/secure/enroll`. 2 new tests (102 total): rotation phases out old keys, and rotate requires the admin key.
+
 ## [1.17.0] - 2026-11-17
 
 ### Added

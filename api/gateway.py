@@ -201,13 +201,28 @@ def create_secure_app(master_key: bytes | None = None, demo: bool = False,
         supplied = request.headers.get("x-vrl1-admin-key", "")
         if not _hmac.compare_digest(supplied, resolved_admin):
             return JSONResponse(status_code=403, content={"detail": "Forbidden"})
+        epoch = sapp.state.current_epoch
         key, info = vault.enroll_generated_key(
-            req.tenant_id, current_epoch, req.target_url,
+            req.tenant_id, epoch, req.target_url,
             req.db_connection_string, req.scopes)
         return {"api_key": key, "tenant_id": req.tenant_id,
-                "epoch": current_epoch, "radius": info["radius"],
+                "epoch": epoch, "radius": info["radius"],
                 "transparency_root": vault.transparency_root(),
                 "note": "Store this key now; it is shown once."}
+
+    @sapp.post("/secure/rotate")
+    async def rotate_epoch(request: Request):
+        """Advance the epoch, phasing out keys older than the previous epoch.
+
+        Keys enrolled at the old epoch remain valid for one more rotation
+        (dual-read window); after a second rotation they are dropped."""
+        supplied = request.headers.get("x-vrl1-admin-key", "")
+        if not _hmac.compare_digest(supplied, resolved_admin):
+            return JSONResponse(status_code=403, content={"detail": "Forbidden"})
+        sapp.state.current_epoch += 1
+        return {"current_epoch": sapp.state.current_epoch,
+                "note": "Enroll fresh keys at the new epoch via /secure/enroll; "
+                        "previous-epoch keys stay valid for one more rotation."}
 
     @sapp.post("/secure/mint-token")
     async def mint_token(req: _MintRequest, request: Request):
@@ -272,7 +287,7 @@ def create_secure_app(master_key: bytes | None = None, demo: bool = False,
         try:
             target = vault.authenticate(
                 tenant_id=tenant, api_key=api_key, epoch=epoch,
-                current_epoch=current_epoch, nonce=nonce, ts=ts,
+                current_epoch=sapp.state.current_epoch, nonce=nonce, ts=ts,
                 method=request.method, path=request.url.path, body=body, proof=proof)
         except (PermissionError, KeyError, ValueError):
             return JSONResponse(status_code=403, content={"detail": "Forbidden"})
