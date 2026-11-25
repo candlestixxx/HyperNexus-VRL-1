@@ -2,7 +2,7 @@
 
 **United Beats LLC · UNITEDBEATS.ONLINE · LUMBROS.ME**
 
-> Companion to [README-VRL4.md](../README-VRL4.md). This is the engineering spec:
+> Companion to [README.md](../README.md). This is the engineering spec:
 > the baseline prototype, the four hardening upgrades, the build phases, and
 > additional mathematical notes. See [VRL4_PHYSICS.md](VRL4_PHYSICS.md) for the
 > physics foundation behind the Light Layer.

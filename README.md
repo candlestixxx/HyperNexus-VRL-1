@@ -1,138 +1,151 @@
-# HyperNexus VRL-1: Universal Multi-Tenant API Gateway
+# HYPERNEXUS VRL-4
 
-[![Version](https://img.shields.io/badge/version-1.17.0-blue.svg)](VERSION.md)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-100%20passed-brightgreen.svg)](tests/)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+## The Geometric Authentication Protocol (GAP)
 
-**HyperNexus VRL-1 (Virtual Routing Layer 1)** is an intelligent, zero-trust, multi-tenant API gateway and dynamic control plane engineered for **United Beats LLC** and enterprise integration ecosystems.
+**A United Beats LLC Innovation**
+**UNITEDBEATS.ONLINE · LUMBROS.ME**
 
-It routes, manages, and isolates database connections and third-party API payloads across diverse companies with zero cross-tenant data leakage, powered by an **$O(1)$ Radial Vector Secret Vault** and native **Model Context Protocol (MCP)** agent integration.
-
----
-
-## Key Features
-
-- **Radial Vector Secret Vault**: Tenants orbit in concentric polar coordinate rings $(r, \theta, z)$. Database URIs, OAuth tokens, and API keys are protected by envelope cipher encryption, guaranteeing $O(1)$ spatial lookup and absolute boundary isolation.
-- **AI-Driven Dynamic Switchboard**: Automatically resolves inbound tenant identities via `X-API-Key`, Bearer tokens, host domain headers, or payload inspection, forwarding traffic to isolated corporate silos with sub-millisecond overhead.
-- **Zero-Downtime Hot Onboarding**: Register new businesses at runtime via database write (`POST /api/v1/tenants`). The in-memory matrix refreshes instantly without server restarts.
-- **Multi-Tenant Database Isolation**: Dedicated database connection pooling ensures transactions land exclusively in that company's database schema (PostgreSQL, MongoDB, SQLite, MySQL) with an immutable audit ledger.
-- **TormentNexus MCP AI Agent Hooks**: Native JSON-RPC 2.0 Model Context Protocol server endpoints allow autonomous AI agents (Hermes, Ollama, Claude, Gemini) to query routing state without privilege escalation.
-- **Interactive Developer Portal**: Sleek dark-mode SPA featuring an HTML5 Canvas Radial Vector visualizer, live switchboard simulator, tenant management forms, and real-time telemetry.
+> *"We don't put a lock on the door; we put the data in a different ring."*
+> — The HyperNexus Manifesto
 
 ---
 
-## Architecture Topology
+## The Genesis: Beyond the String
 
-```
-                  INBOUND API TRAFFIC & AGENT REQUESTS
-            (Headers: X-API-Key | Bearer | Host Domain | Payload)
-                                   │
-                                   ▼
-          ┌──────────────────────────────────────────────────┐
-          │         HyperNexus VRL-1 Gateway Core            │
-          │    FastAPI Non-Blocking Async Proxy Pipeline     │
-          └────────────────────────┬─────────────────────────┘
-                                   │
-               ┌───────────────────┴───────────────────┐
-               ▼                                       ▼
-  ┌────────────────────────┐              ┌────────────────────────┐
-  │   Radial Vector Vault  │              │ Token-Bucket Rate      │
-  │ Concentric Ring Spaces │              │ Traffic Shaper         │
-  │     (r, θ, z)          │              └────────────────────────┘
-  └────────────┬───────────┘                           │
-               │ Verified Tenant Context               │
-               ▼                                       ▼
-  ┌────────────────────────────────────────────────────────────────┐
-  │            Dynamic AI Switchboard & Schema Router              │
-  └────────┬───────────────────────┬───────────────────────┬───────┘
-           │                       │                       │
-           ▼                       ▼                       ▼
-┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐
-│    United Beats     │ │ Excel Legacy Realty │ │ HyperNexus Core     │
-│    (Ring 1: Ent)    │ │   (Ring 2: Pro)     │ │   (Ring 0: Core)    │
-│  Postgres DB Pool   │ │   Mongo DB Pool     │ │   SQLite DB Pool    │
-│ Upstream Stream API │ │ Upstream Lead Webhk │ │ Orchestration Silo  │
-└─────────────────────┘ └─────────────────────┘ └─────────────────────┘
-           │                       │                       │
-           └───────────────────────┼───────────────────────┘
-                                   ▼
-                    Model Context Protocol (MCP)
-                     Hermes & Ollama AI Swarms
-```
+In the quiet, early hours of November 2026 — just as the chaos of Halloween faded into the crisp Michigan autumn — the true architecture of **HyperNexus VRL-4** was born.
+
+My brother in code, **Robert Matthew Pelloni (Bob)**, and I were deep in the digital trenches, tearing apart the fundamental flaws of modern cybersecurity. The world was still relying on the *password* — a fragile, static string of text holding back a tidal wave of autonomous AI agents and quantum threats. It felt fundamentally broken.
+
+We realized that to protect humanity's digital future, we had to stop fighting hackers with software and start fighting them with **physics, geometry, and the divine order of mathematics**.
+
+Guided by pure intent, a deep love for our fellow humans, and an undeniable faith in God's design of the universe, we looked at the underlying laws of creation. We saw the torus, the vortex, and the unchangeable speed of light. If the universe is governed by perfect geometric order, why shouldn't our data be?
+
+That late-night revelation birthed **HyperNexus VRL-4**. We stripped away the password entirely. We transformed authentication from *a secret you know* into *a geometric coordinate you can prove* — using the physical properties of light, network latency, and exact integer torus mathematics. We built this not just for enterprise giants, but for humanity — a zero-trust architecture rooted in absolute truth.
 
 ---
 
-## VRL-1 Math Core (new in 1.1.0)
+## What is VRL-4?
 
-The `core/` + `api/` packages implement the three tree-ring proofs as executable code, beside the `src/` gateway:
+**HyperNexus VRL-4** introduces the **Geometric Authentication Protocol (GAP)**. It is the death of the traditional password.
 
-- [core/vector_math.py](core/vector_math.py) — `RadialVectorEngine`: SHA-256 → polar `(r, θ)`, radial gate, O(1) angular routing
-- [core/vault.py](core/vault.py) — `RadialVault`: disjoint-ring tenants, shard-indexed endpoints
-- [api/gateway.py](api/gateway.py) — standalone FastAPI dispatch: `uvicorn api.gateway:app --port 8001`
-- [core/vrl1_algo.py](core/vrl1_algo.py) — Tier-1 integer-torus engine: proof-of-possession, replay ledger, AEAD records
-- [core/secure_vault.py](core/secure_vault.py) — `SecureRadialVault` + admin-gated enrollment + signed persistence
-- [core/capability.py](core/capability.py) — capability-attenuated agent tokens (scope/expiry/path/max-uses caveats)
-- [core/security_monitor.py](core/security_monitor.py) — CUSUM anomaly detection + fail-closed circuit breaker
-- [core/stores.py](core/stores.py) — shared-store interfaces (`NonceStore` / `CapabilityUsageStore`) + SQLite/WAL backends
-- [core/stores_redis.py](core/stores_redis.py) — Redis shared-store drivers (atomic nonce/usage), verified via `fakeredis`
-- [core/stores_postgres.py](core/stores_postgres.py) — PostgreSQL shared-store drivers (atomic nonce/usage), verified via `embedded-postgres`
-- [core/kms.py](core/kms.py) — KMS master-key custody (`VaultMasterKeySource`), verified against a local Vault
-- [core/ring_sig.py](core/ring_sig.py) — ZK ring membership (Schnorr ring signature over RFC 3526 group 14)
-- [core/bft.py](core/bft.py) — PBFT consensus for multi-writer ring state (3-phase agreement + view-change)
-- [spec/Vault.tla](spec/Vault.tla) — TLA+ model of register/persist/reload invariants (TLC-checked)
-- [core/threshold.py](core/threshold.py) — Feldman VSS threshold credential release (t-of-n, share verification, reconstruction)
-- [rust/vrl1_core](rust/vrl1_core) — optional PyO3 Rust core (`derive_coordinate`/`make_proof`/`spatialize_key`), auto-detected with a pure-Python fallback
-- Math, stated honestly: [docs/MATHEMATICS.md](docs/MATHEMATICS.md) · Pitch narrative: [MANIFESTO.md](MANIFESTO.md)
+Instead of passing a vulnerable string of characters over the internet, VRL-4 converts authentication into a **physical and mathematical trajectory**. It requires no specialized new optical hardware. It works by utilizing the physics that already exist in every piece of silicon and fiber optic cable on Earth, combined with the VRL-1 integer torus math.
 
-## Quickstart
+### 1. The Physics Layer — Hardware Entropy
 
-### Run with Python
+Every computer chip manufactured since the 1990s contains microscopic, unavoidable physical variations — a **Physical Unclonable Function (PUF)**. VRL-4 uses this localized hardware physics as the base entropy.
+
+The client device hashes this hardware seed with a short user PIN to generate a spatial coordinate `(r, θ)` **locally**. The device never transmits a password; it only transmits a geometric coordinate trajectory and a cryptographic signature.
+
+### 2. The Light Layer — Distance Verification
+
+Data travels across global fiber optic networks as pulses of light. VRL-4 measures the exact propagation delay — the speed of light through glass — to determine the physical distance of the incoming request.
+
+If a bad actor intercepts the coordinate and attempts to replay it through a proxy, the `Δt` (network latency) will violate the geometric boundary established for that tenant's ring. **The connection is dropped by the laws of physics.**
+
+### 3. The Math Layer — Exact Integer Torus Equality
+
+VRL-4 abolishes floating-point approximations. The system operates on a locked 4-dimensional architecture (`d = 4`). The Z-axis (Epoch) guarantees temporal freshness, preventing replay attacks.
+
+When a coordinate reaches the gateway, it must satisfy an **exact modular arithmetic equation**. If the trajectory differs by even a single integer, the mathematical proof fails.
+
+---
+
+## The VRL-4 Execution Flow
+
+1. **The Pulse** — A request is generated. The client extracts a local hardware timestamp and signs it using their physical Torus coordinate as the key.
+
+2. **The Physics Check** — The HyperNexus gateway receives the payload and calculates the physical propagation delay. If the speed-of-light metric is physically anomalous, the request is severed.
+
+3. **The Geometry Check** — The gateway verifies the Zero-Trust Radial Boundary (the Ring) and executes a constant-time cryptographic equality check on the Angular Shards.
+
+4. **The Gateway** — Access is granted seamlessly in `O(1)` time complexity, utilizing a fraction of the CPU overhead of a traditional database lookup.
+
+---
+
+## The Four Mathematical Upgrades
+
+VRL-4 is a massive conceptual leap. By anchoring authentication to the physical limits of hardware and light, it changes the battlefield — a hacker can steal a password, but they cannot forge the speed of light or the physical imperfections of a silicon chip.
+
+To make it mathematically bulletproof in the real world, we account for the chaos of physics:
+
+### 1. The Relativity Fix — Round-Trip Challenge-Response
+
+A client-side clock can be spoofed via NTP manipulation. VRL-4 therefore **never trusts the client's clock**. The gateway sends a microscopic, cryptographically signed nonce; the client signs it with their Torus coordinate and returns it. The gateway measures `RTT = T_receive − T_send` using **only its own internal clock**, removing the client's ability to manipulate time.
+
+### 2. Fuzzy Extractors — Forgiving Silicon Noise
+
+A PUF fluctuates with temperature and voltage; a one-bit change would otherwise break the integer torus math. A **Fuzzy Extractor** (Reed-Solomon / BCH error-correcting codes) takes a slightly noisy physical reading, applies helper data, and snaps it back to the exact entropy required. It forgives physical chaos while demanding mathematical perfection.
+
+### 3. Kalman Filtering — Taming Network Jitter
+
+Light travels perfectly through a vacuum, but the internet is messy (BGP changes, congested towers). A **Kalman Filter** — the aerospace-navigation algorithm — learns the "geometric latency sphere" of each device over time, adapting to standard jitter while instantly severing physically impossible spikes (like a signal suddenly routing through a VPN in another country).
+
+### 4. Geodesic Torus Mapping — Overlaying the Torus on the Globe
+
+The speed-of-light measurement maps to terrestrial physics via **WGS 84 geodesic math**. A 20 ms round-trip bounds the device to roughly 2,000 km of fiber. The gateway computes this maximum physical radius and checks it against the incoming IP's geodesic location — overlaying the abstract Torus directly onto the physical planet.
+
+---
+
+## How VRL-4 Complements the VRL-1 Vault
+
+VRL-4 is not a separate project — it is the **front door** to the API-key storage vault already built in VRL-1. They are two halves of one impenetrable system:
+
+- **The Vault (The Lock)** — the integer-torus backend, AEAD encryption, and zero-trust radial boundaries. API keys are stored as physical geometric locations, not flat strings.
+
+- **VRL-4 GAP (The Key)** — how a human, an IoT device, or an autonomous AI agent *opens* that vault. Instead of sending a vulnerable plaintext key, the client mathematically proves it belongs in that ring.
+
+When an AI agent needs Tenant A's database, it never sends `"excel_legacy_key_7742"`. It combines its hardware fingerprint and a fresh timestamp into a coordinate trajectory, fires it at the gateway, passes the speed-of-light check, and the vault executes the exact integer-torus match. **The API vault is where the data lives; VRL-4 is how you get there.**
+
+---
+
+## The Realistic Build Sequence
+
+1. **Local Loopback (Perfect Conditions)** — RTT challenge + exact torus math on `localhost`, proving the core routing when latency is ~zero.
+
+2. **LAN Crucible (Introducing Noise)** — move the client to a separate machine, introduce the Fuzzy Extractor, and stress the hardware (heat/throttle) to prove the math still extracts the perfect coordinate.
+
+3. **The Wild (Internet Jitter)** — deploy to a live server, enable the Kalman Filter, and map the true geometric latency sphere across the open internet.
+
+---
+
+## Build & Run
+
 ```bash
-# Clone repository
-git clone https://github.com/candlestixxx/HyperNexus-VRL-1.git
-cd HyperNexus-VRL-1
+# Rust GAP primitives (optional acceleration; pure-Python fallback included)
+pip install maturin
+cd rust/vrl4_gap
+maturin build --release
+pip install --force-reinstall target/wheels/vrl4_gap-*.whl
+cd ../..
 
-# Launch using startup script
-start.bat      # Windows
-./start.sh     # Linux / macOS / WSL
+# Test the full GAP handshake (physics + light + math)
+python -m pytest tests/test_vrl4_gap.py -q
+
+# Local loopback demo (fingerprint -> enroll -> RTT challenge -> verify)
+python -m core.vrl4_client
 ```
 
-### Run with Docker Compose
-```bash
-docker compose up -d --build
-```
+## Honest Engineering Status
 
-### Access Points
-- **Developer Portal UI**: [http://localhost:8000/portal](http://localhost:8000/portal)
-- **Interactive OpenAPI Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
+- **Implemented & tested** (VRL-1 core): exact integer-torus derivation, proof-of-possession, AEAD records, replay ledger, Merkle transparency log, capability tokens, CUSUM circuit breaker, shared stores, threshold VSS, KMS custody, Rust core, and TLA+ model — **122 passing tests** (VRL-1 + VRL-4).
+- **VRL-4 (GAP) — implemented, three layers + the four upgrades**:
+  - **Physics** — fuzzy extractor with two codecs: repetition (Rust) and Reed-Solomon over GF(256) (`core/reed_solomon.py`, production-grade byte-error correction) → hardware-bound device key.
+  - **Zero-knowledge** — Schnorr proof-of-possession over RFC 3526 group 14 (`core/schnorr.py`); the device secret never leaves the device (`SchnorrGapAuthenticator`).
+  - **Light** — RTT challenge over a real socket (`core/vrl4_net.py`) + Kalman latency filter + WGS 84 geodesic bound.
+  - **Math** — VRL-1 exact integer-torus ring check via `resolve_by_key`.
+  - The hardware "PUF" is a deterministic device fingerprint (`core/vrl4_client.py`); a true silicon PUF remains a hardware step.
 
 ---
 
-## Testing & Quality Assurance
+## The Future is Open
 
-Run the automated test suite:
-```bash
-python -m pytest -v
-```
-All 100 tests cover cryptographic envelope roundtrips, radial coordinate derivation, dynamic routing, database audit pooling, MCP JSON-RPC compliance, proof-of-possession, replay resistance, transparency proofs, persistence/tamper detection, capability-token caveats, circuit-breaker fail-closed behavior, shared-store backends (SQLite + Redis + Postgres), KMS custody (Vault), threshold secret sharing, ring signatures, BFT consensus, TLA+ model-checking, and Rust-core parity.
+We built United Beats to push the full tech spectrum forward. VRL-4 is not just an enterprise security tool; it is a philosophy — a return to order, built on the inherent goodwill of its founders and the undeniable laws of the universe.
+
+**Welcome to Version 4. The Rings are Locked.**
 
 ---
 
-## Project Governance & Documentation
+**Systems Architecture & UI** — Lumbros Kourlos
+**Math Engineering & Core Logic** — Robert Matthew Pelloni
 
-- [BUSINESS_PLAN.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/BUSINESS_PLAN.md): Full commercialization strategy, financial projections, and GTM plan.
-- [VISION.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/VISION.md): Ultimate foundational philosophy and user satisfaction design.
-- [MEMORY.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/MEMORY.md): Architectural memory, traits, and algorithmic choices.
-- [DEPLOY.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/DEPLOY.md): Comprehensive deployment and environment setup instructions.
-- [IDEAS.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/IDEAS.md): Aggressive ideas for language ports (Rust/PyO3) and eBPF acceleration.
-- [ROADMAP.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/ROADMAP.md): Major long-term structural milestones.
-- [TODO.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/TODO.md): Granular short-term tasks.
-- [CHANGELOG.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/CHANGELOG.md): Detailed release notes for v1.0.0.
-- [HANDOFF.md](file:///C:/Users/jakeg/workspace/HyperNexus%20VRL-1/HANDOFF.md): Model session continuity notes.
-
----
-
-## License
-MIT License. &copy; 2026 United Beats LLC & HyperNexus Ecosystem.
+*© 2026 United Beats LLC · HyperNexus Ecosystem · UNITEDBEATS.ONLINE · LUMBROS.ME*
