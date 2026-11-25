@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 2026-11-17
+
+### Added
+- **Multi-node replicated vault** (`core/distributed_vault.py`): `N = 3f+1` `SecureRadialVault` replicas coordinated by the PBFT consensus core (`core/bft.py`). Register/enroll operations are ordered by consensus and applied deterministically on every honest replica, so ring state stays consistent even with Byzantine nodes. Added `SecureRadialVault.apply_op`, `generate_in_ring_key`, `resolve_by_key`, and a `_on_commit` hook on the PBFT replica. 3 new tests (105 total): cross-node registration, consistent enroll/resolve, and consistent rejection of an overlapping ring.
+
+## [1.18.0] - 2026-11-17
+
+### Added
+- **Epoch key rotation** (`POST /secure/rotate`, admin-gated): advances the gateway epoch so keys older than the previous epoch phase out via the existing dual-read window; fresh keys are enrolled at the new epoch through `/secure/enroll`. 2 new tests (102 total): rotation phases out old keys, and rotate requires the admin key.
+
 ## [1.17.0] - 2026-11-17
 
 ### Added

@@ -89,6 +89,25 @@ uvicorn api.gateway:create_secure_app --factory --port 8001
 
 Vault persistence is opt-in via `create_secure_app(persistence_path=...)`: state is written atomically and its transparency root is HMAC-signed, so a rolled-back or forged state file is refused on the next load. In demo mode the auto-generated admin key is printed to stderr and exposed at `/secure/demo-admin-key` only.
 
+### Run the secure gateway (production entrypoint, with TLS)
+
+`serve.py` runs the secure app with env-driven config and optional TLS:
+
+```bash
+export VRL1_MASTER_KEY="$(python -c 'import secrets;print(secrets.token_urlsafe(32))')"
+export VRL1_ADMIN_KEY="$(python -c 'import secrets;print(secrets.token_urlsafe(24))')"
+export VRL1_VAULT_PATH="data/vrl1_vault.json"
+
+# self-signed cert for local/dev only (use Let's Encrypt in production)
+python tools/gen_cert.py certs/server.crt certs/server.key localhost
+export VRL1_TLS_CERT=certs/server.crt
+export VRL1_TLS_KEY=certs/server.key
+
+python serve.py   # https://0.0.0.0:8443
+```
+
+Without `VRL1_TLS_CERT/KEY`, `serve.py` serves plain HTTP on `VRL1_PORT` (default 8443). Key rotation: `POST /secure/rotate` (admin-key header) advances the epoch; enroll fresh keys at the new epoch via `/secure/enroll`.
+
 Capability-attenuated agent tokens are minted by the admin at `POST /secure/mint-token` (admin-key gated) and used by agents on the dispatch path via the `X-VRL1-Capability` header (or `Authorization: Bearer <token>`). Tokens carry scope-subset, expiry, path-prefix, and max-use caveats.
 
 A CUSUM circuit breaker (fail-closed) trips per tenant and per shard under an auth-failure spike; open circuits are visible at `/secure/circuits` and in `/health`. While open, requests are rejected before the proof/nonce machinery.

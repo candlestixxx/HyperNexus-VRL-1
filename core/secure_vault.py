@@ -291,6 +291,28 @@ class SecureRadialVault:
                 best_shards, best_epoch = shards, sealed.epoch
         return best_shards
 
+    def generate_in_ring_key(self, tenant_id: str, epoch: int = 1,
+                             max_tries: int = 10_000) -> str:
+        """Rejection-sample a key that derives in-ring, WITHOUT enrolling."""
+        ring = self._rings[tenant_id]
+        for _ in range(max_tries):
+            key = self.engine.generate_api_key()
+            radius, _ = self.engine.derive_coordinate(tenant_id, key, epoch)
+            if ring.contains(radius):
+                return key
+        raise RuntimeError("no in-ring key found; ring too narrow")
+
+    def apply_op(self, op: dict) -> None:
+        """Apply a consensus-committed operation to this vault replica."""
+        action = op["action"]
+        if action == "register_tenant":
+            self.register_tenant(op["tenant_id"], Ring(op["lo"], op["hi"]))
+        elif action == "enroll":
+            self.enroll_key(op["tenant_id"], op["api_key"], op["epoch"],
+                            op["target_url"], op["db_connection_string"],
+                            op.get("scopes", ["*"]))
+        else:
+            raise ValueError(f"unknown op action {action!r}")
     def resolve_by_key(self, tenant_id: str, api_key: str, epoch: int) -> dict:
         """Resolve a routing record by an already-authenticated key string.
 

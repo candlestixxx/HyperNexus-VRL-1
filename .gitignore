@@ -37,6 +37,7 @@ logs/
 .env.local
 *.pem
 *.key
+certs/
 
 # IDE & OS
 .vscode/
