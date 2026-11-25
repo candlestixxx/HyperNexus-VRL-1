@@ -36,3 +36,14 @@ Harness: [benchmarks/bench_http.py](../benchmarks/bench_http.py) · secure-gatew
 | Pure Python | ~410–421 req/s | ~2.0–2.1 ms | ~4.4–4.9 ms |
 
 Honest reading: at the full-request level there is no reliable Rust-vs-Python difference — run-to-run variance exceeds the gap. That is expected: the ported crypto is a few microseconds of a ~2 ms request dominated by ASGI/JSON/upstream/AEAD/nonce/breaker overhead. The Rust win is real only at the primitive level (2×, above). The Kong/Nginx+Redis baseline comparison remains the outstanding Phase-1 crucible before any external throughput claim.
+
+## HTTP crucible (v1.19.x)
+
+Harness: [benchmarks/bench_crucible.py](../benchmarks/bench_crucible.py) · secure-gateway dispatch vs a bare key-lookup gateway, in-process ASGI + mock upstream, 2,000 requests, concurrency 8, dev laptop.
+
+| Gateway | Throughput | p50 | p95 |
+|---|---|---|---|
+| Bare dict lookup (Redis-class proxy) | ~1,050–1,090 req/s | ~870–890 µs | ~1.0–1.1 ms |
+| VRL-1 secure (torus + proof + AEAD) | ~444–448 req/s | ~2.16 ms | ~2.7–2.9 ms |
+
+Honest reading: VRL-1's full zero-trust path costs **~2.4× a bare key lookup** at the HTTP level — the price of exact-torus verification, per-request proof-of-possession, and AEAD record opening, all in Python. That is the defensible, non-marketing number. A real Kong/Nginx+Redis run is documented in [deploy/](../deploy/) and [benchmarks/run_crucible_linux.sh](../benchmarks/run_crucible_linux.sh) (needs Linux/WSL + Docker).
